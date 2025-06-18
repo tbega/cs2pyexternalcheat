@@ -17,9 +17,6 @@ This should fix the pyMeow error.
 A external cheat for CS2, made using python, pymeow, and dearpygui.
 
 
-
-## `Features`
-
 # ESP
 This cheat only has esp.
 - Box ESP
