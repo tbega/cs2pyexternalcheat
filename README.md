@@ -10,64 +10,48 @@ Go to https://github.com/qb-0/PyMeow, download the latest release. Extract it us
 Then type 
 `pip install pymeow*.zip`
 Once this finishes, the pymeow error SHOULD be gone. please.. guys, pymeow is just weird okay :sob:
-# CS2 External Cheat
+
+
+
+
+
+
+OH YEAH BTW I THINK FUCKING THE NAME TEXT HAS A CHANCE TO CRASH THE PY SCRIPT SO FIX IT IF U WANT IDGAF THO
+
+
 an external cheat for cs2, it has esp and a menu
 ## features
 
 ### esp
-- **Player Boxes**: Outline players with customizable colored boxes
-- **Skeleton ESP**: Display player bone structure with customizable colors and thickness
-- **Head Circle ESP**: Draw circles around player heads
-- **Health Bars**: Visual health indicators with numerical values
-- **Player Information**: Display names, distances, and weapon information
-- **Line ESP**: Draw lines from screen center/top/bottom to players
-- **Teammate Toggle**: Option to show/hide ESP for teammates
-- **Distance Filtering**: Configurable maximum ESP distance
+sjeketib and boxes and stuff like that
 
 ### gui
-- **Real-time Configuration**: Adjust all settings while the cheat is running
-- **Color Customization**: Choose from multiple color options for all ESP elements
-- **Intuitive Controls**: Easy-to-use checkboxes, sliders, and dropdowns
+a gui is here!
 
-## Installation & Setup
 
-### Prerequisites
+
+### u need
 - Windows 10/11
 - Python 3.11 or newer
 - Counter-Strike 2 installed
-
-### Quick Setup (Recommended)
-
+### then do 
 1. **Download the cheat files** to a folder on your computer
 2. **Run the installer** by double-clicking `install.bat`
    - This will automatically install all required dependencies
 3. **Launch the cheat** by running `python main.py` in the folder
 
-### Manual Setup
+---
 
 If the automatic installer doesn't work:
 
-1. **Install Python dependencies manually**:
-   ```
    pip install -r requirements.txt
-   ```
 
-2. **Install build tools** (if you want to compile from source):
-   ```
-   pip install cython setuptools wheel
-   ```
-
-## Usage
-
-### Starting the Cheat
+## to use
 
 1. **Launch Counter-Strike 2** first
-2. **Run the cheat** by executing `python main.py` in the cheat folder \ or by double click main.py
-3. The cheat will automatically:
-   - Find and attach to the CS2 game window
-   - Open the configuration GUI
+2. **Run the cheat** by executing `python main.py` in the cheat folder \ or by double clicking main.py
+3. game
 
-### Using the GUI
 
 The GUI is divided into several sections:
 
@@ -145,17 +129,5 @@ If you encounter issues:
 
 This software is for educational purposes only. Using cheats in online games may violate the game's terms of service and could result in account bans. Use at your own risk. I take no responsiblity for any consequences resulting from the use of this software. You choose to cheat.
 
-## Features Overview
-
-- ✅ Player ESP boxes with multiple colors
-- ✅ Skeleton ESP with customizable appearance
-- ✅ Head circle ESP
-- ✅ Health bars with numerical values
-- ✅ Player information display (names, distances, weapons)
-- ✅ Teammate filtering
-- ✅ Line ESP with multiple positions
-- ✅ Security features and obfuscation
-- ✅ Real-time GUI configuration
-- ✅ Distance-based filtering
-
-Enjoy responsibly!
+enjoy u cuck
+also yes i used ai for the description cry me a river mate i changed it up ok mate
