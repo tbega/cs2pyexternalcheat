@@ -1,5 +1,5 @@
 ![Image](https://github.com/user-attachments/assets/9e6b2f45-d85f-43c1-9ae6-dab97cabcf2e)
-
+![Image](https://github.com/user-attachments/assets/295f8855-80fe-4752-aa86-c82e274612cc)
 `VERY VERY FUCKING IMPORTANT`
 If it says pyMeow can't be found, here's what you need to do:
 Go to https://github.com/qb-0/PyMeow, download the latest release. Extract it using winrar or Window 11's native folder extractor, put it inside a folder and open a command prompt, navigate to that folder by typing 
