@@ -37,7 +37,7 @@ This cheat only has esp.
 
 
 # Setup
-- Python installed
+- Python installed --> `https://www.python.org/ftp/python/3.13.5/python-3.13.5-amd64.exe`
 - Counter-Strike 2 installed
 
 
