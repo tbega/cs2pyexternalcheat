@@ -48,7 +48,7 @@ This cheat only has esp.
 2. Run `install.bat`
    - This will automatically install all required dependencies
 
-3. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in `https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/`
+3. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
 - Type 
 ``` py main.py ```
 
