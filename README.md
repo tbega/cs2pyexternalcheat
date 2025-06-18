@@ -1,4 +1,4 @@
-https://media1.tenor.com/m/KAKfOJHERMYAAAAd/basketball-lebron-james.gif
+![Image](https://github.com/user-attachments/assets/9e6b2f45-d85f-43c1-9ae6-dab97cabcf2e)
 
 `VERY VERY FUCKING IMPORTANT`
 If it says pyMeow can't be found, here's what you need to do:
