@@ -72,6 +72,7 @@ If the automatic installer doesn't work:
 
 # Troubleshooting
 If you encounter the error "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the folder `\cheat` is contained.
+
 If you encounter warnings like
 - [Security] Warning: Could not enable debug privileges.
 - [Security] Warning: Could not hide process.
