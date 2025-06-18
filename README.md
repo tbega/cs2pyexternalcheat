@@ -67,20 +67,38 @@ If the automatic installer doesn't work:
 
 1. Launch Counter-Strike 2
 2. Get into a match, do not launch the cheat in the main menu.
-3. Double click main.py, or do what is said in step 3 of installation if it won't launch.
+3. Run `main.py.`
 
 
 # Troubleshooting
-If you encounter a "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the folder `\cheat` is contained.
+If you encounter the error "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the folder `\cheat` is contained.
 If you encounter warnings like
-- [Security] Warning: Could not enable debug privileges
-- [Security] Warning: Could not hide process
+- [Security] Warning: Could not enable debug privileges.
+- [Security] Warning: Could not hide process.
 
 These are completely normal, and are nothing to worry about.
 
 
+--- 
+# Other errors
+If you encounter the error "[Launcher] Failed to run Main module: Unexpected error encountered: Process 'cs2.exe' not found" or a command prompt simply flashes for a second not giving you enough time to read:
+- Run the main.py script as admin.
+
+---
+
+If you encounter the error "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds" 
+- Make sure your game is Fullscreen Windowed \ Windowed.
+- An easy way to make sure your game stays in FS windowed and doesn't switch to windowed, is to launch the game, set it to fullscreen windowed, then close it and relaunch it and not mess with any settings.
+
+
+
+Any errors like "nimpy.AccessViolationDefect: Unexpected error encountered: Read failed [Address: 0x0000000000001324] [Error: 299 - Only part of a ReadProcessMemory or WriteProcessMemory request was completed.]"
+Are due to:
+- You ran the cheat in the main menu and not in game.
+- The cheat isn't running as admin.
+
+
 
 # Legal Disclaimer
-
 This software is for educational purposes only. Using cheats in online games may violate the game's terms of service and could result in account bans. Use at your own risk. I take no responsiblity for any consequences resulting from the use of this software. You choose to cheat.
 
