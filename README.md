@@ -1,7 +1,12 @@
+`VERY VERY FUCKING IMPORTANT`
+If it says pyMeow can't be found, here's what you need to do:
+Go to https://github.com/qb-0/PyMeow, download the latest release. Extract it using winrar or Window 11's native folder extractor, put it inside a folder and open a command prompt, navigate to that folder by typing 
+`cd ADDRESS-TO-FOLDER-HERE` then rename the folder to exactly *"pymeow"*
+Then type 
+`pip install pymeow*.zip`
+Once this finishes, the pymeow error SHOULD be gone. please.. guys, pymeow is just weird okay :sob:
 # CS2 External Cheat
-
 an external cheat for cs2, it has esp and a menu
-
 ## features
 
 ### esp
