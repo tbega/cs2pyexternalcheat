@@ -91,7 +91,7 @@ If you encounter the error "[Skeleton ESP] Error: Unexpected error encountered: 
 - Make sure your game is Fullscreen Windowed \ Windowed.
 - An easy way to make sure your game stays in FS windowed and doesn't switch to windowed, is to launch the game, set it to fullscreen windowed, then close it and relaunch it and not mess with any settings.
 
-
+---
 
 Any errors like "nimpy.AccessViolationDefect: Unexpected error encountered: Read failed [Address: 0x0000000000001324] [Error: 299 - Only part of a ReadProcessMemory or WriteProcessMemory request was completed.]"
 Are due to:
