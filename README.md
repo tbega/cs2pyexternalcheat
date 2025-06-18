@@ -1,3 +1,5 @@
+https://tenor.com/view/basketball-lebron-james-tuff-cold-ts-pmo-gif-2883041776783082694
+
 `VERY VERY FUCKING IMPORTANT`
 If it says pyMeow can't be found, here's what you need to do:
 Go to https://github.com/qb-0/PyMeow, download the latest release. Extract it using winrar or Window 11's native folder extractor, put it inside a folder and open a command prompt, navigate to that folder by typing 
