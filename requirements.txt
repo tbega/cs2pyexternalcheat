@@ -1,0 +1,5 @@
+pyMeow
+requests
+dearpygui
+psutil
+pygetwindow
