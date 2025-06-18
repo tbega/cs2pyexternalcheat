@@ -11,6 +11,9 @@ This should fix the pyMeow error.
 
 
 
+
+
+# What is this?
 A external cheat for CS2, made using python, pymeow, and dearpygui.
 
 
