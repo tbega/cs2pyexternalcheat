@@ -19,12 +19,13 @@ Try:
 This should fix the pyMeow error.
 
 
-# Black screen OR AMD GPU
+# Black screen OR AMD GPU?
 
-If you have an AMD GPU, you might encounter an issue where you can see the overlay, but everything else is black. To fix this please click on the menu, then cs2, and make sure the menu stays open, drag it to the bottom of the screen so it is out of your way. Sadly, I do not know another fix for AMD GPU's.
+From testing, AMD GPU's seem to have a black screen issue when using most overlays (pyMeow included), to fix this I have added a some what compromise. When launching the cheat, click onto the GUI menu, and then click onto CS2. You will have to configure the settings and then drag the menu to the bottom of the screen. I do not know of a way to completely hide the menu while fixing the overlay.
 
+# What if I have a NVIDIA GPU?
 
-
+For NVIDIA GPU's you should not have this black screen problem, simply uncheck Always On Top in the settings and click the minimize button to completely hide the menu until you need it.
 
 # What is this?
 
