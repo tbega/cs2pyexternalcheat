@@ -6,8 +6,12 @@ import os
 import sys
 import time
 import psutil
+import keyboard
 import Utils
 import Configs as cfg
+from random import uniform
+from win32gui import GetWindowText, GetForegroundWindow
+from pynput.mouse import Controller, Button
 
 
 
@@ -50,7 +54,6 @@ class SecurityUtils:
     
     @staticmethod
     def hide_from_process_list():
-        """Hide process from basic process enumeration"""
         try:
             current_process = kernel32.GetCurrentProcess()
             hwnd = user32.GetConsoleWindow()
@@ -150,11 +153,14 @@ class SecurityUtils:
                 windows = gw.getAllWindows()
                 overlay_window = None
                 for window in windows:
-                    if (window.title == "" or 
+                    if (
+                        (window.title == "" or 
                         "OpenGL" in window.title or 
                         "pygame" in window.title or
                         window.title.startswith("SDL") or
-                        "pyMeow" in window.title.lower()):
+                        "pyMeow" in window.title.lower()) and
+                        ("counter-strike" not in window.title.lower() and "cs2" not in window.title.lower())
+                    ):
                         overlay_window = window
                         break
                 if overlay_window:
@@ -163,41 +169,50 @@ class SecurityUtils:
                     return True
             except ImportError:
                 pass 
-        
-
 
             def enum_windows_callback(hwnd, lParam):
                 try:
-                   
                     title_buffer = ctypes.create_unicode_buffer(256)
                     user32.GetWindowTextW(hwnd, title_buffer, 256)
                     window_title = title_buffer.value
-                    
                     
                     class_buffer = ctypes.create_unicode_buffer(256)
                     user32.GetClassNameW(hwnd, class_buffer, 256)
                     class_name = class_buffer.value
                     
                     
-                    if (window_title == "" or 
+                    if (
+                        (window_title == "" or 
                         "OpenGL" in window_title or
                         "SDL" in class_name or
-                        "pyMeow" in window_title.lower()):
-                       
+                        "pyMeow" in window_title.lower()) and
+                        ("counter-strike" not in window_title.lower() and 
+                         "cs2" not in window_title.lower() and
+                         "cheat menu" not in window_title.lower())  # Don't rename GUI window
+                    ):
                         user32.SetWindowTextW(hwnd, title)
                         return False  
                 except:
                     pass
                 return True  
-            
-            
             EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
             user32.EnumWindows(EnumWindowsProc(enum_windows_callback), 0)
-            
             return True
-                
         except Exception as e:
-            
+            return False
+
+    @staticmethod
+    def obfuscate_gui_title(new_title):
+        """Separate function to obfuscate the GUI window title"""
+        try:
+            hwnd = user32.FindWindowW(None, "Cheat Menu")
+            if hwnd:
+                user32.SetWindowTextW(hwnd, new_title)
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f"[Security] Failed to obfuscate GUI title: {e}")
             return False
 
 class Offsets:
@@ -214,75 +229,250 @@ class Colors:
     red = pm.get_color("#FF0000")  
 
 
+class TriggerBot:
+    def __init__(self):
+        self.mouse = Controller()
+        self.last_shot_time = 0
+        self.next_shot_delay = 0
+        self.can_shoot = True
+        self.last_check_time = 0
+        self.first_shot = True  
+        
+    def shoot(self):
+        """Execute a mouse click and set next shot delay"""
+        current_time = time.time()
+        
+       
+        if self.first_shot:
+            self.last_shot_time = current_time
+            self.next_shot_delay = uniform(cfg.TRIGGERBOT.delay_min, cfg.TRIGGERBOT.delay_max)
+            self.first_shot = False
+            if self.next_shot_delay <= 0.0:
+                self.mouse.click(Button.left)
+                return True
+            return False  
+        
+        
+        if current_time >= self.last_shot_time + self.next_shot_delay:
+            self.mouse.click(Button.left)
+            self.last_shot_time = current_time
+            self.next_shot_delay = uniform(cfg.TRIGGERBOT.delay_min, cfg.TRIGGERBOT.delay_max)
+            return True
+        return False
+        
+    def check_and_shoot(self, process, module):
+        current_time = time.time()
+        
+        if current_time - self.last_check_time < cfg.TRIGGERBOT.check_interval:
+            return False
+        
+        self.last_check_time = current_time
+        
+        try:
+            if not GetWindowText(GetForegroundWindow()) == "Counter-Strike 2":
+                return False
+                
+            
+            if not keyboard.is_pressed(cfg.TRIGGERBOT.trigger_key):
+                self.first_shot = True
+                return False
+                
+            
+            local_pawn = pm.r_int64(process, module + Offsets.dwLocalPlayerPawn)
+            if not local_pawn:
+                return False
+                
+           
+            entity_id = pm.r_int(process, local_pawn + Offsets.m_iIDEntIndex)
+            if entity_id <= 0:
+                return False
+                
+          
+            entity_list = pm.r_int64(process, module + Offsets.dwEntityList)
+            entry_ptr = pm.r_int64(process, entity_list + 0x8 * (entity_id >> 9) + 0x10)
+            entity_ptr = pm.r_int64(process, entry_ptr + 120 * (entity_id & 0x1FF))
+            
+            if not entity_ptr:
+                return False
+                
+            
+            target_health = pm.r_int(process, entity_ptr + Offsets.m_iHealth)
+            target_team = pm.r_int(process, entity_ptr + Offsets.m_iTeamNum)
+            local_team = pm.r_int(process, local_pawn + Offsets.m_iTeamNum)
+            
+            
+            if target_health > 0 and target_team != 0:
+                if cfg.TRIGGERBOT.shoot_teammates or (target_team != local_team):
+                    return self.shoot()  # This now returns True/False based on timing
+                    
+        except Exception as e:
+            pass
+            
+        return False
+
 class Entity:
 
     def __init__(self, ptr, pawn_ptr, proc):
         self.ptr = ptr
         self.pawn_ptr = pawn_ptr
         self.proc = proc
-        self.pos2d = None
-        self.head_pos2d = None
+        self._valid = ptr and pawn_ptr and ptr > 0x1000 and pawn_ptr > 0x1000
 
     @property
     def name(self):
-        return pm.r_string(self.proc, self.ptr + Offsets.m_iszPlayerName)
+        # always read fresh from memory with validation
+        if not self._valid:
+            return "Invalid"
+        try:
+            name = pm.r_string(self.proc, self.ptr + Offsets.m_iszPlayerName)
+            return name if name else "Unknown"
+        except:
+            return "Error"
 
     @property
     def health(self):
-        return pm.r_int(self.proc, self.pawn_ptr + Offsets.m_iHealth)
+        # always read fresh from memory with validation
+        if not self._valid:
+            return 0
+        try:
+            health = pm.r_int(self.proc, self.pawn_ptr + Offsets.m_iHealth)
+            if isinstance(health, int) and 0 <= health <= 200:
+                return health
+            return 0
+        except:
+            return 0
 
     @property
     def team(self):
-        return pm.r_int(self.proc, self.pawn_ptr + Offsets.m_iTeamNum)
+        # always read fresh from memory with validation
+        if not self._valid:
+            return 0
+        try:
+            team = pm.r_int(self.proc, self.pawn_ptr + Offsets.m_iTeamNum)
+            if isinstance(team, int) and team in [0, 1, 2, 3]:
+                return team
+            return 0
+        except:
+            return 0
 
     @property
     def pos(self):
-        return pm.r_vec3(self.proc, self.pawn_ptr + Offsets.m_vOldOrigin)
+        # always read fresh from memory with validation
+        if not self._valid:
+            return {"x": 0, "y": 0, "z": 0}
+        try:
+            pos = pm.r_vec3(self.proc, self.pawn_ptr + Offsets.m_vOldOrigin)
+            if pos and all(isinstance(pos.get(k), (int, float)) for k in ['x', 'y', 'z']):
+                return pos
+            return {"x": 0, "y": 0, "z": 0}
+        except:
+            return {"x": 0, "y": 0, "z": 0}
     
     @property
     def dormant(self):
-        return pm.r_bool(self.proc, self.pawn_ptr + Offsets.m_bDormant)
+        # always read fresh from memory with validation
+        if not self._valid:
+            return True
+        try:
+            dormant = pm.r_bool(self.proc, self.pawn_ptr + Offsets.m_bDormant)
+            return bool(dormant)
+        except:
+            return True
 
     @property
     def weaponIndex(self):
+        if not self._valid:
+            return 0
         try:
+            # always read fresh from memory
             currentWeapon = pm.r_int64(self.proc, self.pawn_ptr + Offsets.m_pClippingWeapon)
-            if currentWeapon == 0:
+            if not currentWeapon or currentWeapon < 0x1000:
                 return 0
             weaponIndex = pm.r_int(self.proc, currentWeapon + Offsets.m_AttributeManager + Offsets.m_Item + Offsets.m_iItemDefinitionIndex)
-            return weaponIndex
+            if isinstance(weaponIndex, int) and 0 <= weaponIndex <= 100:
+                return weaponIndex
+            return 0
         except:
             return 0
     
     def get_weapon_name(self):
         try:
+            # always get fresh weapon index
             weapon_index = self.weaponIndex
             return weapon_names.get(weapon_index, "Unknown")
         except:
             return "Unknown"
         
     def get_distance(self, localPos):
-        dx = self.pos["x"] - localPos["x"]
-        dy = self.pos["y"] - localPos["y"]
-        dz = self.pos["z"] - localPos["z"]
-        return int(math.sqrt(dx * dx + dy * dy + dz * dz) / 100)
+        # always calculate fresh distance with validation
+        if not self._valid or not localPos:
+            return float('inf')
+        try:
+            current_pos = self.pos  
+            if not current_pos:
+                return float('inf')
+                
+            dx = current_pos["x"] - localPos["x"]
+            dy = current_pos["y"] - localPos["y"]
+            dz = current_pos["z"] - localPos["z"]
+            distance = int(math.sqrt(dx * dx + dy * dy + dz * dz) / 100)
+            
+            if 0 <= distance <= 1000:
+                return distance
+            return float('inf')
+        except:
+            return float('inf')
 
     def bone_pos(self, bone):
-        game_scene = pm.r_int64(self.proc, self.pawn_ptr + Offsets.m_pGameSceneNode)
-        bone_array_ptr = pm.r_int64(self.proc, game_scene + Offsets.m_pBoneArray)
-        return pm.r_vec3(self.proc, bone_array_ptr + bone * 32)
+        # always read fresh bone data with validation
+        if not self._valid:
+            return {"x": 0, "y": 0, "z": 0}
+        try:
+            game_scene = pm.r_int64(self.proc, self.pawn_ptr + Offsets.m_pGameSceneNode)
+            if not game_scene or game_scene < 0x1000:
+                return {"x": 0, "y": 0, "z": 0}
+                
+            bone_array_ptr = pm.r_int64(self.proc, game_scene + Offsets.m_pBoneArray)
+            if not bone_array_ptr or bone_array_ptr < 0x1000:
+                return {"x": 0, "y": 0, "z": 0}
+                
+            bone_pos = pm.r_vec3(self.proc, bone_array_ptr + bone * 32)
+            if bone_pos and all(isinstance(bone_pos.get(k), (int, float)) for k in ['x', 'y', 'z']):
+                return bone_pos
+            return {"x": 0, "y": 0, "z": 0}
+        except:
+            return {"x": 0, "y": 0, "z": 0}
     
     def wts(self, view_matrix):
+        if not self._valid or not view_matrix:
+            return False
         try:
-            self.pos2d = pm.world_to_screen(view_matrix, self.pos, 1)
-            self.head_pos2d = pm.world_to_screen(view_matrix, self.bone_pos(6), 1)
+            head_pos = self.bone_pos(6)  
+            feet_pos = self.pos.copy()  
+            if not head_pos or not feet_pos:
+                return False
+                
+            feet_pos["z"] -= 10  
+            
+            pos2d = pm.world_to_screen(view_matrix, self.pos, 1)
+            head_pos2d = pm.world_to_screen(view_matrix, head_pos, 1)
+            feet_pos2d = pm.world_to_screen(view_matrix, feet_pos, 1)
+            
+            # Validate 2D positions
+            if not (pos2d and head_pos2d and feet_pos2d):
+                return False
+                
+            self.pos2d = pos2d
+            self.head_pos2d = head_pos2d
+            self.feet_pos2d = feet_pos2d
+            
+            return all(pos.get("x") and pos.get("y") for pos in [pos2d, head_pos2d, feet_pos2d])
         except:
             return False
-        return True
 
 class Render:
     @staticmethod
-    def get_color_from_config(color_name):
+    def get_color_from_config(color_value):
         color_map = {
             "Red": "#FF0000",
             "Green": "#00FF00",
@@ -295,8 +485,66 @@ class Render:
             "Purple": "#800080",
             "Pink": "#FFC0CB"
         }
-        hex_color = color_map.get(color_name, "#FFFFFF")  # Default to white if not found
-        return pm.get_color(hex_color)
+        
+        if isinstance(color_value, str):
+            hex_color = color_map.get(color_value, "#FFFFFF")
+            return pm.get_color(hex_color)
+       
+        if isinstance(color_value, (list, tuple)) and len(color_value) >= 3:
+            r, g, b = color_value[:3]
+            if all(0 <= c <= 1 for c in (r, g, b)):
+                r, g, b = int(r * 255), int(g * 255), int(b * 255)
+            else:
+                r, g, b = int(r), int(g), int(b)
+            hex_color = "#{:02X}{:02X}{:02X}".format(r, g, b)
+            return pm.get_color(hex_color)
+       
+        return pm.get_color("#FFFFFF")
+
+    @staticmethod
+    def draw_smooth_line(x1, y1, x2, y2, color, thickness=1.0, anti_aliased=True):
+        if anti_aliased and thickness > 2.0:
+            pm.draw_line(x1 + 0.5, y1 + 0.5, x2 + 0.5, y2 + 0.5, pm.fade_color(color, 0.3), thickness * 0.8)
+        pm.draw_line(x1, y1, x2, y2, color, thickness)
+
+    @staticmethod
+    def draw_smooth_rectangle_lines(x, y, width, height, color, thickness=1.0):
+        """Draw smooth rectangle outline with minimal performance impact"""
+        
+        pm.draw_rectangle_lines(x, y, width, height, color, thickness)
+
+    @staticmethod
+    def calculate_accurate_box(entity, distance):
+        if not (entity.head_pos2d and entity.feet_pos2d):
+            return None, None, None, None
+            
+        
+        raw_height = abs(entity.feet_pos2d["y"] - entity.head_pos2d["y"])
+        box_height = raw_height * 0.95  
+        
+       
+        if distance > 30:
+            
+            box_width = box_height * 0.35
+        elif distance > 15:
+            
+            box_width = box_height * 0.4
+        else:
+           
+            box_width = box_height * 0.45
+            
+       
+        min_box_size = 8
+        box_width = max(min_box_size, box_width)
+        box_height = max(min_box_size, box_height)
+        
+        
+        box_x = entity.head_pos2d["x"] - box_width / 2
+        
+        height_reduction = raw_height * 0.15
+        box_y = entity.head_pos2d["y"] + (height_reduction * 0.2)  
+        
+        return box_x, box_y, box_width, box_height
 
     @staticmethod
     def draw_health(max, current, PosX, PosY, width, height):
@@ -307,7 +555,7 @@ class Render:
             
             health_percentage = current / max
             if health_percentage > 0.7:
-                health_color = pm.get_color("#00FF00")  # Green for high health
+                health_color = pm.get_color("#00FF00")  
             elif health_percentage > 0.4:
                 health_color = pm.get_color("#FFFF00")  
             elif health_percentage > 0.2:
@@ -330,143 +578,95 @@ class Render:
         return PosX, PosY, width, height
 
     @staticmethod
-    def draw_box(PosX, PosY, width, height, filled_color):
+    def draw_box(entity, distance, team_color):
         if not cfg.ESP.show_box:
             return
             
-        box_color = Render.get_color_from_config(cfg.ESP.box_color)
-        
-        # Handle different box styles
-        if cfg.ESP.box_style == "Filled":
-            pm.draw_rectangle(PosX, PosY, width, height, filled_color)
-            pm.draw_rectangle_lines(PosX + 1, PosY + 1, width, height, Colors.black, 1.2)   # Shadow
-            pm.draw_rectangle_lines(PosX, PosY, width, height, box_color, 1.2)
-        elif cfg.ESP.box_style == "Cornered":
-            Render.draw_cornered_box_internal(PosX, PosY, width, height, filled_color, box_color)
-        else:  # Regular box
-            pm.draw_rectangle_lines(PosX + 1, PosY + 1, width, height, Colors.black, 1.2)   # Shadow
-            pm.draw_rectangle_lines(PosX, PosY, width, height, box_color, 1.2)
-    
-    @staticmethod
-    def draw_cornered_box_internal(PosX, PosY, width, height, filled_color, box_color):
-        corner_length = min(width, height) * 0.25  # 25% of the smaller dimension
-        
-        if cfg.ESP.box_style == "Filled":
-            pm.draw_rectangle(PosX, PosY, width, height, filled_color)
-        
-        # Draw corner lines with shadows
-        # Top-left corner
-        pm.draw_line(PosX + 1, PosY + 1, PosX + corner_length + 1, PosY + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX, PosY, PosX + corner_length, PosY, box_color, 1.5)
-        pm.draw_line(PosX + 1, PosY + 1, PosX + 1, PosY + corner_length + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX, PosY, PosX, PosY + corner_length, box_color, 1.5)
-        
-        # Top-right corner
-        pm.draw_line(PosX + width - corner_length + 1, PosY + 1, PosX + width + 1, PosY + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX + width - corner_length, PosY, PosX + width, PosY, box_color, 1.5)
-        pm.draw_line(PosX + width + 1, PosY + 1, PosX + width + 1, PosY + corner_length + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX + width, PosY, PosX + width, PosY + corner_length, box_color, 1.5)
-        
-        # Bottom-left corner
-        pm.draw_line(PosX + 1, PosY + height - corner_length + 1, PosX + 1, PosY + height + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX, PosY + height - corner_length, PosX, PosY + height, box_color, 1.5)
-        pm.draw_line(PosX + 1, PosY + height + 1, PosX + corner_length + 1, PosY + height + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX, PosY + height, PosX + corner_length, PosY + height, box_color, 1.5)
-        
-        # Bottom-right corner
-        pm.draw_line(PosX + width + 1, PosY + height - corner_length + 1, PosX + width + 1, PosY + height + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX + width, PosY + height - corner_length, PosX + width, PosY + height, box_color, 1.5)
-        pm.draw_line(PosX + width - corner_length + 1, PosY + height + 1, PosX + width + 1, PosY + height + 1, Colors.black, 2.0)  # Shadow
-        pm.draw_line(PosX + width - corner_length, PosY + height, PosX + width, PosY + height, box_color, 1.5)
-
-    @staticmethod
-    def draw_distance(distance, health_bar_x, health_bar_y, health_bar_width, y_offset):
-        text_x = health_bar_x + health_bar_width + 5
-        text_y = health_bar_y + y_offset
-        font_size = 12
-        pm.draw_text(f"{distance}m", text_x + 1, text_y + 1, font_size, Colors.black)  # Shadow
-        pm.draw_text(f"{distance}m", text_x, text_y, font_size, pm.get_color("#FF0000"))  # Red text
-
-    @staticmethod
-    def draw_weapon(weaponName, health_bar_x, health_bar_y, health_bar_width, y_offset):
-        text_x = health_bar_x + health_bar_width + 5
-        text_y = health_bar_y + y_offset
-        font_size = 12
-        pm.draw_text(f"{weaponName}", text_x + 1, text_y + 1, font_size, Colors.black)  # Shadow
-        pm.draw_text(f"{weaponName}", text_x, text_y, font_size, pm.get_color("#FF0000"))  # Red text
-
-    @staticmethod
-    def draw_name(playerName, health_bar_x, health_bar_y, health_bar_width, y_offset):
-        if not cfg.ESP.show_name:
+        box_coords = Render.calculate_accurate_box(entity, distance)
+        if not all(coord is not None for coord in box_coords):
             return
-        text_x = health_bar_x + health_bar_width + 5
-        text_y = health_bar_y + y_offset
-        font_size = 12
-        pm.draw_text(f"{playerName}", text_x + 1, text_y + 1, font_size, Colors.black)  # Shadow
-        pm.draw_text(f"{playerName}", text_x, text_y, font_size, pm.get_color("#FF0000"))  # Red text
+            
+        box_x, box_y, box_width, box_height = box_coords
+        box_color = Render.get_color_from_config(cfg.ESP.box_color)
+        box_fill_color = Render.get_color_from_config(cfg.ESP.box_fill_color)
+        
+        
+        if cfg.ESP.box_style == "Filled":
+            pm.draw_rectangle(box_x, box_y, box_width, box_height, box_fill_color)
+           
+            Render.draw_smooth_rectangle_lines(box_x, box_y, box_width, box_height, box_color, 1.2)
+        elif cfg.ESP.box_style == "Cornered":
+            Render.draw_cornered_box_improved(box_x, box_y, box_width, box_height, box_color, distance, False)
+        elif cfg.ESP.box_style == "Cornered + Filled":
+            Render.draw_cornered_box_improved(box_x, box_y, box_width, box_height, box_color, distance, True, box_fill_color)
+        else:  
+            
+            pm.draw_rectangle_lines(box_x + 1, box_y + 1, box_width, box_height, Colors.black, 0.8)
+            
+            Render.draw_smooth_rectangle_lines(box_x, box_y, box_width, box_height, box_color, 1.2)
 
     @staticmethod
-    def draw_skeleton(entity, view_matrix):
+    def draw_cornered_box_improved(x, y, width, height, color, distance, filled=False, fill_color=None):
+        corner_length = min(width, height) * 0.25
+        corner_length = max(corner_length, 6)
+        
+        thickness = 1.5
+        
+        
+        if filled and fill_color:
+            pm.draw_rectangle(x, y, width, height, fill_color)
+        
+        
+        corners = [
+            # Top-left
+            [(x, y, x + corner_length, y), (x, y, x, y + corner_length)],
+            # Top-right  
+            [(x + width - corner_length, y, x + width, y), (x + width, y, x + width, y + corner_length)],
+            # Bottom-left
+            [(x, y + height - corner_length, x, y + height), (x, y + height, x + corner_length, y + height)],
+            # Bottom-right
+            [(x + width, y + height - corner_length, x + width, y + height), (x + width - corner_length, y + height, x + width, y + height)]
+        ]
+        
+        for corner_lines in corners:
+            for line in corner_lines:
+                x1, y1, x2, y2 = line
+                pm.draw_line(x1, y1, x2, y2, color, thickness)
+
+    @staticmethod
+    def draw_skeleton(entity, view_matrix, distance):
         if not cfg.ESP.show_skeleton:
             return
-            
 
-
-
-        color_map = {
-            "Red": "#FF0000",
-            "Green": "#00FF00",
-            "Blue": "#0000FF",
-            "Yellow": "#FFFF00",
-            "Magenta": "#FF00FF",
-            "Cyan": "#00FFFF",
-            "White": "#FFFFFF",
-            "Orange": "#FFA500",
-            "Purple": "#800080",
-            "Pink": "#FFC0CB"
-        }
-    
-
-
-
-       
-        color_name = cfg.ESP.skeleton_color
-        hex_color = color_map.get(color_name, "#FF00FF")  # Default to magenta if not found
-        skeleton_color = pm.get_color(hex_color)
+        color_value = cfg.ESP.skeleton_color
+        skeleton_color = Render.get_color_from_config(color_value)
         
         
-        thickness = cfg.ESP.skeleton_thickness
+        base_thickness = cfg.ESP.skeleton_thickness
+        thickness = base_thickness if distance <= 20 else min(base_thickness * 1.1, 2.5)
             
        
-        bone_connections = [
-            # Head to neck
-            (6, 5),   # Head to Neck
-            # Spine
-            (5, 4),   # Neck to Upper Chest
-            (4, 2),   # Upper Chest to Lower Chest  
-            (2, 0),   # Lower Chest to Pelvis
-            # Left arm
-            (4, 8),   # Upper Chest to Left Shoulder
-            (8, 9),   # Left Shoulder to Left Upper Arm
-            (9, 10),  # Left Upper Arm to Left Forearm
-            (10, 11), # Left Forearm to Left Hand
-            # Right arm  
-            (4, 13),  # Upper Chest to Right Shoulder
-            (13, 14), # Right Shoulder to Right Upper Arm
-            (14, 15), # Right Upper Arm to Right Forearm
-            (15, 16), # Right Forearm to Right Hand
-            # Left leg
-            (0, 22),  # Pelvis to Left Thigh
-            (22, 23), # Left Thigh to Left Shin
-            (23, 24), # Left Shin to Left Foot
-            # Right leg
-            (0, 25),  # Pelvis to Right Thigh
-            (25, 26), # Right Thigh to Right Shin  
-            (26, 27), # Right Shin to Right Foot
-        ]
+        if distance > 25:
+            bone_connections = [
+                (6, 5), (5, 4), (4, 2), (2, 0),  
+                (4, 8), (8, 10),  
+                (4, 13), (13, 15),  
+                (0, 22), (22, 24),  
+                (0, 25), (25, 27),  
+            ]
+        else:
+           
+            bone_connections = [
+                (6, 5), (5, 4), (4, 2), (2, 0),  
+                (4, 8), (8, 9), (9, 10), (10, 11),  
+                (4, 13), (13, 14), (14, 15), (15, 16),  
+                (0, 22), (22, 23), (23, 24),  
+                (0, 25), (25, 26), (26, 27),  
+            ]
         
         try:
             for bone1, bone2 in bone_connections:
+                # Get fresh bone positions for each connection
                 bone1_pos = entity.bone_pos(bone1)
                 bone2_pos = entity.bone_pos(bone2)
                 
@@ -474,77 +674,73 @@ class Render:
                 bone2_2d = pm.world_to_screen(view_matrix, bone2_pos, 1)
                 
                 if bone1_2d and bone2_2d:
-                    if cfg.ESP.skeleton_shadow:
+                    if cfg.ESP.skeleton_shadow and distance < 15:
                         pm.draw_line(bone1_2d["x"] + 1, bone1_2d["y"] + 1, 
                                    bone2_2d["x"] + 1, bone2_2d["y"] + 1, 
-                                   Colors.black, thickness + 0.5)
+                                   Colors.black, thickness * 0.8)
+                    
+                    
                     pm.draw_line(bone1_2d["x"], bone1_2d["y"], 
                                bone2_2d["x"], bone2_2d["y"], 
                                skeleton_color, thickness)
+                
         except Exception as e:
-            print(f"[Skeleton ESP] Error: {e}")
+            pass
 
     @staticmethod
-    def draw_head_circle(entity, view_matrix, local_pos):
+    def draw_head_circle(entity, view_matrix, local_pos, distance):
         if not cfg.ESP.show_head_circle:
             return
             
-        color_map = {
-            "Red": "#FF0000",
-            "Green": "#00FF00",
-            "Blue": "#0000FF",
-            "Yellow": "#FFFF00",
-            "Magenta": "#FF00FF",
-            "Cyan": "#00FFFF",
-            "White": "#FFFFFF",
-            "Orange": "#FFA500",
-            "Purple": "#800080",
-            "Pink": "#FFC0CB"
-        }
-        
-        color_name = cfg.ESP.skeleton_color
-        hex_color = color_map.get(color_name, "#FF00FF")  # Default to magenta if not found
-        head_color = pm.get_color(hex_color)
+        color_value = cfg.ESP.skeleton_color
+        head_color = Render.get_color_from_config(color_value)
         
         try:
-            # Get head position
-            head_pos = entity.bone_pos(6)  # Head bone
+            
+            head_pos = entity.bone_pos(6)
             head_2d = pm.world_to_screen(view_matrix, head_pos, 1)
             
             if head_2d:
-                try:
-                    distance = entity.get_distance(local_pos)
-                except:
-                    distance = 10  
                 
-                radius = max(4, min(8, 50 / distance)) 
+                if distance > 25:
+                    radius = max(5, 60 / distance)
+                else:
+                    radius = max(4, 40 / distance)
+                radius = min(radius, 10)
                 
-                segments = 16  
+               
+                segments = 12 if distance > 20 else 16
+                thickness = cfg.ESP.skeleton_thickness
+                
+                
+                circle_points = []
                 for i in range(segments):
-                    angle1 = (i * 2 * math.pi) / segments
-                    angle2 = ((i + 1) * 2 * math.pi) / segments
+                    angle = (i * 2 * math.pi) / segments
+                    x = head_2d["x"] + radius * math.cos(angle)
+                    y = head_2d["y"] + radius * math.sin(angle)
+                    circle_points.append((x, y))
+                
+                
+                for i in range(segments):
+                    x1, y1 = circle_points[i]
+                    x2, y2 = circle_points[(i + 1) % segments]
+                   
+                    # Simple shadow only for close targets
+                    if cfg.ESP.skeleton_shadow and distance < 15:
+                        pm.draw_line(x1 + 1, y1 + 1, x2 + 1, y2 + 1, Colors.black, thickness * 0.8)
+                   
+                    # Main circle line
+                    pm.draw_line(x1, y1, x2, y2, head_color, thickness)
                     
-                    x1 = head_2d["x"] + radius * math.cos(angle1)
-                    y1 = head_2d["y"] + radius * math.sin(angle1)
-                    x2 = head_2d["x"] + radius * math.cos(angle2)
-                    y2 = head_2d["y"] + radius * math.sin(angle2)
-                   
-                    if cfg.ESP.skeleton_shadow:
-                        pm.draw_line(x1 + 1, y1 + 1, x2 + 1, y2 + 1, Colors.black, cfg.ESP.skeleton_thickness + 0.5)
-                   
-                    pm.draw_line(x1, y1, x2, y2, head_color, cfg.ESP.skeleton_thickness)
         except:
             pass
 
 class ProcessDetector:
-    """Utility class for detecting CS2 process with multiple fallback methods"""
     
     @staticmethod
     def find_cs2_by_name():
-        """Try to find CS2 by exact process name"""
         try:
             pm = Utils.get_pyMeow()
-            # Try multiple possible names for CS2
             possible_names = ["cs2.exe", "cs2", "Counter-Strike 2.exe", "CounterStrike2.exe"]
             
             for name in possible_names:
@@ -575,11 +771,11 @@ class ProcessDetector:
                         pid = process.info['pid']
                         print(f"[ProcessDetector] Found potential CS2 process: {proc_name} (PID: {pid})")
                         
-                        # Try to open by PID - check if method exists
+                        
                         if hasattr(pm, 'open_process_by_pid'):
                             proc = pm.open_process_by_pid(pid)
                         else:
-                            # Fallback: try to open by exact name if PID method doesn't exist
+                           
                             proc = pm.open_process(proc_name)
                             
                         if proc:
@@ -627,11 +823,11 @@ class ProcessDetector:
             for title, pid in windows:
                 print(f"[ProcessDetector] Found CS2 window: '{title}' (PID: {pid})")
                 try:
-                    # Try to open by PID - check if method exists
+                    
                     if hasattr(pm, 'open_process_by_pid'):
                         proc = pm.open_process_by_pid(pid)
                     else:
-                        # Fallback: get process name and try to open by name
+                       
                         try:
                             p = psutil.Process(pid)
                             proc_name = p.name()
@@ -674,11 +870,11 @@ class ProcessDetector:
                                 proc_name = process.info['name']
                                 print(f"[ProcessDetector] Found running CS2 process at {path} (PID: {pid})")
                                 
-                                # Try to open by PID - check if method exists
+                                
                                 if hasattr(pm, 'open_process_by_pid'):
                                     proc = pm.open_process_by_pid(pid)
                                 else:
-                                    # Fallback: try to open by process name
+                                    
                                     proc = pm.open_process(proc_name)
                                     
                                 if proc:
@@ -696,7 +892,7 @@ class ProcessDetector:
         try:
             pm = Utils.get_pyMeow()
             
-            # Look for Steam processes first
+            
             steam_pids = []
             for process in psutil.process_iter(['pid', 'name', 'cmdline']):
                 try:
@@ -709,7 +905,7 @@ class ProcessDetector:
             if steam_pids:
                 print(f"[ProcessDetector] Found {len(steam_pids)} Steam processes")
                 
-                # Look for CS2 processes that might be children of Steam
+                
                 for process in psutil.process_iter(['pid', 'name', 'ppid', 'cmdline']):
                     try:
                         proc_name = process.info['name']
@@ -738,8 +934,7 @@ class ProcessDetector:
     
     @staticmethod
     def find_cs2_with_retry(max_retries=5, retry_delay=2):
-        """Try multiple methods to find CS2 process with retries"""
-        print("[ProcessDetector] Starting CS2 process detection...")
+        
         
         methods = [
             ("exact name", ProcessDetector.find_cs2_by_name),
@@ -750,13 +945,10 @@ class ProcessDetector:
         ]
         
         for attempt in range(max_retries):
-            print(f"[ProcessDetector] Attempt {attempt + 1}/{max_retries}")
             
             for method_name, method in methods:
-                print(f"[ProcessDetector] Trying method: {method_name}")
                 proc = method()
                 if proc:
-                    print(f"[ProcessDetector] Successfully found CS2 using {method_name}")
                     return proc
                     
             if attempt < max_retries - 1:
@@ -769,21 +961,17 @@ class ProcessDetector:
 
 class Cheat:
     def __init__(self):
-        # Try to find CS2 process using multiple methods
         self.proc = ProcessDetector.find_cs2_with_retry()
         if not self.proc:
             raise Exception("Could not find CS2 process. Make sure Counter-Strike 2 is running.")
             
-        print("[Cheat] CS2 process found, attempting to get client.dll module...")
         
         try:
             pm = Utils.get_pyMeow()
             self.mod = pm.get_module(self.proc, "client.dll")["base"]
-            print(f"[Cheat] client.dll module found at: 0x{self.mod:X}")
         except Exception as e:
             raise Exception(f"Could not find client.dll module in CS2 process: {e}")
 
-        print("[Cheat] Downloading offsets...")
         try:
             offsets_name = ["dwViewMatrix", "dwEntityList", "dwLocalPlayerController", "dwLocalPlayerPawn"]
             rq = Utils.get_requests()
@@ -817,8 +1005,58 @@ class Cheat:
         except Exception as e:
             raise Exception(f"Failed to download or apply offsets: {e}")
         
-        # Store overlay instance for dynamic FPS updates
+        
         self.overlay_initialized = False
+        
+        
+        self.triggerbot = TriggerBot()
+        
+       
+        self.check_gpu_acceleration()
+        
+        #
+        self.last_frame_time = time.time()
+
+    def check_gpu_acceleration(self):
+        try:
+            gpu_methods = [
+                'set_vsync', 'enable_gpu_acceleration', 'set_render_mode',
+                'enable_hardware_acceleration', 'set_opengl_mode'
+            ]
+            
+            available_methods = []
+            for method in gpu_methods:
+                if hasattr(pm, method):
+                    available_methods.append(method)
+            
+            if available_methods:
+                print(f"[Cheat] GPU acceleration methods available: {available_methods}")
+                
+                
+                if hasattr(pm, 'enable_gpu_acceleration'):
+                    try:
+                        pm.enable_gpu_acceleration(True)
+                        print("[Cheat] GPU acceleration enabled")
+                    except:
+                        print("[Cheat] Failed to enable GPU acceleration")
+                
+                if hasattr(pm, 'set_vsync'):
+                    try:
+                        pm.set_vsync(True)
+                        print("[Cheat] VSync enabled for smoother rendering")
+                    except:
+                        print("[Cheat] Failed to enable VSync")
+                
+                if hasattr(pm, 'set_render_mode'):
+                    try:
+                        pm.set_render_mode('hardware')  
+                        print("[Cheat] Hardware render mode enabled")
+                    except:
+                        print("[Cheat] Failed to set hardware render mode")
+                        
+                
+        except Exception as e:
+            print(f"[Cheat] Error checking GPU acceleration: {e}")
 
     def update_overlay_fps(self, new_fps):
         """Update overlay FPS dynamically if possible"""
@@ -837,7 +1075,6 @@ class Cheat:
                 print(f"[Cheat] Overlay FPS updated to {int(new_fps)}")
                 return True
             else:
-                print(f"[Cheat] Dynamic FPS update not supported by pyMeow version")
                 return False
         except Exception as e:
             print(f"[Cheat] Failed to update overlay FPS: {e}")
@@ -849,49 +1086,75 @@ class Cheat:
         for i in range(1, 65):
             try:
                 entry_ptr = pm.r_int64(self.proc, ent_list + (8 * (i & 0x7FFF) >> 9) + 16)
-                controller_ptr = pm.r_int64(self.proc, entry_ptr + 120 * (i & 0x1FF))
-                if controller_ptr == local:
+                if not entry_ptr or entry_ptr < 0x1000:
                     continue
+                        
+                controller_ptr = pm.r_int64(self.proc, entry_ptr + 120 * (i & 0x1FF))
+                if not controller_ptr or controller_ptr < 0x1000 or controller_ptr == local:
+                    continue
+                        
                 controller_pawn_ptr = pm.r_int64(self.proc, controller_ptr + Offsets.m_hPlayerPawn)
+                if not controller_pawn_ptr or controller_pawn_ptr < 0x1000:
+                    continue
+                        
                 list_entry_ptr = pm.r_int64(self.proc, ent_list + 0x8 * ((controller_pawn_ptr & 0x7FFF) >> 9) + 16)
+                if not list_entry_ptr or list_entry_ptr < 0x1000:
+                    continue
+                        
                 pawn_ptr = pm.r_int64(self.proc, list_entry_ptr + 120 * (controller_pawn_ptr & 0x1FF))
-            except:
+                if not pawn_ptr or pawn_ptr < 0x1000:
+                    continue
+                        
+                yield Entity(controller_ptr, pawn_ptr, self.proc)
+                
+            except Exception as e:
+                # Skip problematic entities instead of stopping iteration
                 continue
 
-            yield Entity(controller_ptr, pawn_ptr, self.proc)
-
     def get_local_pawn(self):
-        return pm.r_int64(self.proc, self.mod + Offsets.dwLocalPlayerPawn)
+        
+        try:
+            local_pawn = pm.r_int64(self.proc, self.mod + Offsets.dwLocalPlayerPawn)
+            
+            if local_pawn and local_pawn > 0x1000:  # basic pointer validation
+                return local_pawn
+            return None
+        except:
+            return None
 
     def get_local_player_pos(self):
-        return pm.r_vec3(self.proc, self.get_local_pawn() + Offsets.m_vOldOrigin)
+       
+        try:
+            local_pawn = self.get_local_pawn()
+            if not local_pawn:
+                return None
+            pos = pm.r_vec3(self.proc, local_pawn + Offsets.m_vOldOrigin)
+            if pos and all(isinstance(pos.get(k), (int, float)) for k in ['x', 'y', 'z']):
+                return pos
+            return None
+        except:
+            return None
     
     def get_local_player_team(self):
         try:
             local_pawn = self.get_local_pawn()
             if local_pawn:
-                return pm.r_int(self.proc, local_pawn + Offsets.m_iTeamNum)
+                team = pm.r_int(self.proc, local_pawn + Offsets.m_iTeamNum)
+                if team in [2, 3]:
+                    return team
+            return 0
         except:
-            pass
-        return 0
+            return 0
 
     def run(self):
-        print("[Security] Applying security measures...")
         
         if SecurityUtils.enable_debug_privileges():
             print("[Security] Debug privileges enabled")
-        else:
-            print("[Security] Warning: Could not enable debug privileges")
         
         if SecurityUtils.hide_from_process_list():
             print("[Security] Process hidden from basic enumeration")
         else:
-            print("[Security] Warning: Could not hide process")
-        
-        if SecurityUtils.rename_process():
-            print("[Security] Process name obfuscated")
-        else:
-            print("[Security] Warning: Could not rename process")
+            print("")
         
         possible_titles = ["Counter-Strike 2", "cs2", "CS2", "Counter-Strike: Global Offensive"]
         game_window_title = None
@@ -912,130 +1175,332 @@ class Cheat:
             print("[Security] Warning: Could not find CS2 window, using default title")
         
         pm.overlay_init(game_window_title, fps=cfg.MISC.overlay_fps)
-        print(f"[Security] Overlay attached to: {game_window_title} with {cfg.MISC.overlay_fps} FPS")
         self.overlay_initialized = True
         
+        self.optimize_overlay_rendering()
         
         random_title = SecurityUtils.generate_random_title()
         try:
             SecurityUtils.set_overlay_title(random_title)
-            print(f"[Security] Overlay title obfuscated to: {random_title}")
         except Exception as e:
             print(f"[Security] Warning: Could not set overlay title: {e}")
         
         frame_counter = 0
-        title_change_interval = 5000  
+        title_change_interval = 5000
+        
+        # Add exception handling and frame timing
+        consecutive_errors = 0
+        max_consecutive_errors = 5
         
         while pm.overlay_loop():
-            frame_counter += 1
-            if frame_counter % title_change_interval == 0:
-                new_title = SecurityUtils.generate_random_title()
+            current_frame_time = time.time()
+            frame_start = current_frame_time
+            
+            try:
+                # Run triggerbot if enabled
+                if cfg.TRIGGERBOT.enabled:
+                    try:
+                        self.triggerbot.check_and_shoot(self.proc, self.mod)
+                    except:
+                        pass  # Silently ignore triggerbot errors
+                
+                # Reduce title change frequency to prevent freezes
+                frame_counter += 1
+                if frame_counter % title_change_interval == 0:
+                    try:
+                        new_title = SecurityUtils.generate_random_title()
+                        SecurityUtils.set_overlay_title(new_title)
+                    except:
+                        pass  # Don't let title changes freeze the ESP
+                
+                # Read fresh view matrix every frame - no caching
                 try:
-                    SecurityUtils.set_overlay_title(new_title)
-                    print(f"[Security] Overlay title changed to: {new_title}")
+                    view_matrix = pm.r_floats(self.proc, self.mod + Offsets.dwViewMatrix, 16)
+                    # Validate view matrix
+                    if not view_matrix or len(view_matrix) != 16:
+                        continue
+                except Exception as e:
+                    consecutive_errors += 1
+                    if consecutive_errors > max_consecutive_errors:
+                        print("[Cheat] Too many consecutive errors, restarting...")
+                        break
+                    continue
+
+                pm.begin_drawing()
+                
+                # Use batched rendering if available for better performance
+                if hasattr(self, 'use_batched_rendering') and self.use_batched_rendering:
+                    try:
+                        pm.begin_batch()
+                    except:
+                        pass
+                
+                pm.draw_fps(0, 0)
+                
+                # Get fresh local player data every frame - no caching
+                try:
+                    local_pos = self.get_local_player_pos()
+                    local_team = self.get_local_player_team()
+                    
+                    # If we can't get valid local player data, we're probably in main menu
+                    if not local_pos:
+                        # Still draw the overlay but with a message
+                        pm.draw_text("In Main Menu - Join a game to see ESP", 50, 50, 16, pm.get_color("#FFFF00"))
+                        pm.end_drawing()
+                        consecutive_errors = 0  # Reset errors since this isn't really an error
+                        continue
+                        
+                except Exception as e:
+                    pm.draw_text("Waiting for game data...", 50, 50, 16, pm.get_color("#FFA500"))
+                    pm.end_drawing()
+                    continue
+                
+                # Collect entities fresh every frame - no entity caching
+                entities_to_render = []
+                entity_count = 0
+                max_entities_per_frame = 32  # Limit entities to prevent overload
+                
+                try:
+                    # Create fresh entities every frame
+                    for ent in self.it_entities():
+                        if entity_count >= max_entities_per_frame:
+                            break  # Prevent too many entities from causing freeze
+                            
+                        try:
+                            # Validate entity before processing
+                            if not ent or not ent.ptr or not ent.pawn_ptr:
+                                continue
+                                
+                            # Check if entity has valid health (basic validation)
+                            try:
+                                health = ent.health
+                                if not isinstance(health, int) or health <= 0 or health > 200:
+                                    continue
+                            except:
+                                continue
+                                
+                            # Calculate fresh world-to-screen positions
+                            if ent.wts(view_matrix) and ent.health > 0 and not ent.dormant:
+                                # Calculate fresh distance
+                                distance = ent.get_distance(local_pos)
+                                if distance and distance <= cfg.ESP.max_distance:
+                                    if cfg.ESP.show_teammates or ent.team != local_team:
+                                        entities_to_render.append((ent, distance))
+                            entity_count += 1
+                        except Exception as e:
+                            # Skip problematic entities instead of crashing
+                            continue
+                            
+                except Exception as e:
+                    print(f"[Cheat] Error collecting entities: {e}")
+                
+                # Render entities with fresh data
+                try:
+                    if entities_to_render:
+                        self.render_entities_optimized(entities_to_render, view_matrix, local_pos, local_team)
+                    else:
+                        # Show helpful message when no entities are found
+                        pm.draw_text("No players detected", 50, 80, 14, pm.get_color("#808080"))
+                        
+                except Exception as e:
+                    print(f"[Cheat] Error rendering entities: {e}")
+                
+                # End batched rendering
+                if hasattr(self, 'use_batched_rendering') and self.use_batched_rendering:
+                    try:
+                        pm.end_batch()
+                    except:
+                        pass
+                
+                pm.end_drawing()
+                
+                # Reset error counter on successful frame
+                consecutive_errors = 0
+                
+                # Track frame timing but don't cache results
+                frame_end = time.time()
+                frame_duration = frame_end - frame_start
+                
+                # Only keep minimal frame timing for freeze detection
+                if frame_duration > 0.1:  # Frame took longer than 100ms
+                
+                
+                # Periodically change the window title
+                 if frame_counter >= title_change_interval:
+                    frame_counter = 0
+                    
+            except Exception as e:
+                print(f"[Cheat] Critical error in main loop: {e}")
+                consecutive_errors += 1
+                if consecutive_errors > max_consecutive_errors:
+                    print("[Cheat] Too many errors, exiting...")
+                    break
+                    
+                # Try to recover by continuing
+                try:
+                    pm.end_drawing()
                 except:
                     pass
+                continue
+
+    def optimize_overlay_rendering(self):
+        """Apply rendering optimizations after overlay initialization"""
+        try:
+            # Try various optimization methods
+            optimization_methods = [
+                ('set_blend_mode', 'alpha'),
+                ('enable_antialiasing', False),  # Disable for performance
+                ('set_line_smoothing', False),   # Disable for performance
+                ('enable_texture_filtering', False),
+                ('set_buffer_mode', 'double'),
+                ('enable_fast_rendering', True),
+                ('set_quality_mode', 'performance')
+            ]
             
-            view_matrix = pm.r_floats(self.proc, self.mod + Offsets.dwViewMatrix, 16)
-
-            pm.begin_drawing()
-            pm.draw_fps(0, 0)
-            local_pos = self.get_local_player_pos()
-            local_team = self.get_local_player_team()
+            for method_name, value in optimization_methods:
+                if hasattr(pm, method_name):
+                    try:
+                        getattr(pm, method_name)(value)
+                        print(f"[Cheat] Applied optimization: {method_name}({value})")
+                    except Exception as e:
+                        print(f"[Cheat] Failed to apply {method_name}: {e}")
             
-            for ent in self.it_entities():
-                if ent.wts(view_matrix) and ent.health > 0 and not ent.dormant:
+            # Check if we can use batched rendering
+            if hasattr(pm, 'begin_batch') and hasattr(pm, 'end_batch'):
+                print("[Cheat] Batched rendering available - will use for better performance")
+                self.use_batched_rendering = True
+            else:
+                self.use_batched_rendering = False
+                
+        except Exception as e:
+            print(f"[Cheat] Error applying rendering optimizations: {e}")
+
+    def render_entities_optimized(self, entities_to_render, view_matrix, local_pos, local_team):
+        """Optimized rendering with no caching - fresh data every frame"""
+        try:
+            # Batch 1: Lines (lowest overhead) - fresh data
+            if cfg.ESP.show_line and entities_to_render:
+                try:
+                    # Get fresh color config
+                    line_color = Render.get_color_from_config(cfg.ESP.line_color)
+                    screen_width = pm.get_screen_width()
+                    screen_height = pm.get_screen_height()
                     
-                    distance = ent.get_distance(local_pos)
-                    if distance > cfg.ESP.max_distance:
+                    if cfg.ESP.line_position == "Top":
+                        start_x, start_y = screen_width / 2, 0
+                    elif cfg.ESP.line_position == "Bottom":
+                        start_x, start_y = screen_width / 2, screen_height
+                    else:  # Center
+                        start_x, start_y = screen_width / 2, screen_height / 2
+                    
+                    for ent, distance in entities_to_render[:16]:  # Limit to 16 lines per frame
+                        try:
+                            # Use fresh head position
+                            end_x = ent.head_pos2d["x"]
+                            end_y = ent.head_pos2d["y"]
+                            pm.draw_line(start_x, start_y, end_x, end_y, line_color, 1.0)
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"[Render] Error drawing lines: {e}")
+            
+            # Batch 2: Boxes - fresh calculations
+            try:
+                for ent, distance in entities_to_render:
+                    try:
+                        color = Colors.cyan if ent.team != 2 else Colors.orange
+                        Render.draw_box(ent, distance, color)
+                    except:
                         continue
-                    
-                    
-                    if not cfg.ESP.show_teammates and ent.team == local_team:
+            except Exception as e:
+                print(f"[Render] Error drawing boxes: {e}")
+            
+            # Batch 3: Skeleton (fresh bone data)
+            try:
+                skeleton_count = 0
+                for ent, distance in entities_to_render:
+                    if skeleton_count >= 8:  # Limit skeleton rendering
+                        break
+                    if distance < 30:  # Only render skeleton for closer entities
+                        try:
+                            # Fresh skeleton calculation
+                            Render.draw_skeleton(ent, view_matrix, distance)
+                            skeleton_count += 1
+                        except:
+                            continue
+            except Exception as e:
+                print(f"[Render] Error drawing skeletons: {e}")
+            
+            # Batch 4: Head circles (fresh positions)
+            try:
+                circle_count = 0
+                for ent, distance in entities_to_render:
+                    if circle_count >= 4:  # Very limited head circles
+                        break
+                    if distance < 20:  # Only render head circles for very close entities
+                        try:
+                            # Fresh head circle calculation
+                            Render.draw_head_circle(ent, view_matrix, local_pos, distance)
+                            circle_count += 1
+                        except:
+                            continue
+            except Exception as e:
+                print(f"[Render] Error drawing head circles: {e}")
+            
+            # Batch 5: Health bars and text (fresh data)
+            try:
+                text_count = 0
+                for ent, distance in entities_to_render:
+                    if text_count >= 12:  # Limit text rendering
+                        break
+                    try:
+                        # Fresh box calculation
+                        box_coords = Render.calculate_accurate_box(ent, distance)
+                        if box_coords and all(coord is not None for coord in box_coords):
+                            box_x, box_y, box_width, box_height = box_coords
+                            
+                            # Health bar
+                            health_bar_x = box_x + box_width + 3
+                            health_bar_y = box_y - 5
+                            health_bar_width = max(3, 6 - distance // 10)
+                            health_bar_height = box_height + 10
+                            
+                            # Fresh health data
+                            Render.draw_health(100, ent.health, health_bar_x, health_bar_y, health_bar_width, health_bar_height)
+                            
+                            # Fresh text data
+                            info_texts = []
+                            if cfg.ESP.show_name and distance < 25:  # Fresh name
+                                info_texts.append(ent.name)
+                            if cfg.ESP.show_distance:
+                                info_texts.append(f"{distance}m")
+                            if cfg.ESP.show_weapon and distance < 20:  # Fresh weapon
+                                weapon_name = ent.get_weapon_name()
+                                if weapon_name and weapon_name != "Unknown":
+                                    info_texts.append(weapon_name)
+                            
+                            # Limit text items per entity
+                            info_texts = info_texts[:2]  # Max 2 text items per entity
+                            
+                            font_size = 12 if distance < 20 else 10
+                            line_spacing = font_size + 4
+                            total_height = len(info_texts) * line_spacing
+                            text_start_y = box_y - total_height - 6
+                            
+                            for idx, text in enumerate(info_texts):
+                                text_width = font_size * 0.6 * len(text)
+                                text_x = box_x + box_width / 2 - text_width / 2
+                                text_y = text_start_y + idx * line_spacing
+                                pm.draw_text(text, text_x, text_y, font_size, pm.get_color("#FFFFFF"))
+                            
+                            text_count += 1
+                    except:
                         continue
-                    
-                    color = Colors.cyan if ent.team != 2 else Colors.orange
-                    head = ent.pos2d["y"] - ent.head_pos2d["y"]
-                    width = head / 2
-                    center = width / 2
-
-                    # Draw line to player with configurable color and position
-                    if cfg.ESP.show_line:
-                        line_color = Render.get_color_from_config(cfg.ESP.line_color)
-                        
-                        # Determine line start position based on configuration
-                        screen_width = pm.get_screen_width()
-                        screen_height = pm.get_screen_height()
-                        
-                        if cfg.ESP.line_position == "Top":
-                            start_x = screen_width / 2
-                            start_y = 0
-                        elif cfg.ESP.line_position == "Bottom":
-                            start_x = screen_width / 2
-                            start_y = screen_height
-                        else:  # Center (default)
-                            start_x = screen_width / 2
-                            start_y = screen_height / 2
-                        
-                        # Draw line with shadow
-                        pm.draw_line(start_x + 1, start_y + 1, ent.head_pos2d["x"] + 1, ent.head_pos2d["y"] - center / 2 + 1, Colors.black, 1.0)
-                        pm.draw_line(start_x, start_y, ent.head_pos2d["x"], ent.head_pos2d["y"] - center / 2, line_color, 0.8)
-                    
-                    # Draw boxes
-                    Render.draw_box(ent.head_pos2d["x"] - center, ent.head_pos2d["y"] - center / 2, width, head + center / 2, color)
-                    
-                    # Draw skeleton ESP
-                    Render.draw_skeleton(ent, view_matrix)
-                    
-                    # Draw head circle ESP
-                    Render.draw_head_circle(ent, view_matrix, local_pos)
-                    
-                    # Draw health bar and get its exact coordinates
-                    health_bar_x = ent.head_pos2d["x"] + center + 2
-                    health_bar_y = ent.head_pos2d["y"] - center / 2
-                    health_bar_width = 4
-                    health_bar_height = head + center / 2
-                    
-                    actual_hb_x, actual_hb_y, actual_hb_w, actual_hb_h = Render.draw_health(100, ent.health, 
-                                        health_bar_x,
-                                        health_bar_y, 
-                                        health_bar_width, 
-                                        health_bar_height)
-                    
-                    # Draw information using EXACT same coordinates as health text
-                    info_texts = []
-                    if cfg.ESP.show_name:
-                        info_texts.append(ent.name)
-                    if cfg.ESP.show_distance:
-                        info_texts.append(f"{distance}m")
-                    if cfg.ESP.show_weapon:
-                        weapon_name = ent.get_weapon_name()
-                        if weapon_name and weapon_name != "Unknown":
-                            info_texts.append(weapon_name)
-                    
-                    font_size = 12
-                    line_spacing = 16
-                    total_height = len(info_texts) * line_spacing
-                    box_center_x = ent.head_pos2d["x"]
-                    box_top_y = ent.head_pos2d["y"] - center / 2
-                    text_start_y = box_top_y - total_height - 4  # 4px gap above box
-                    for idx, text in enumerate(info_texts):
-                        # Estimate text width: font_size * 0.6 * len(text)
-                        text_width = font_size * 0.6 * len(text)
-                        text_x = box_center_x - text_width / 2
-                        text_y = text_start_y + idx * line_spacing
-                        pm.draw_text(text, text_x + 1, text_y + 1, font_size, Colors.black)
-                        pm.draw_text(text, text_x, text_y, font_size, pm.get_color("#FF0000"))
-
-            pm.end_drawing()
-
-            # Periodically change the window title to a new random title
-            frame_counter += 1
-            if frame_counter >= title_change_interval:
-                new_title = SecurityUtils.generate_random_title()
-                pm.set_window_title(new_title)
-                print(f"[Security] Window title changed to: {new_title}")
-                frame_counter = 0  # Reset counter
+            except Exception as e:
+                print(f"[Render] Error drawing health/text: {e}")
+                
+        except Exception as e:
+            print(f"[Render] Critical error in optimized rendering: {e}")
 
 weapon_names = { 
         1: "deagle", 
@@ -1049,6 +1514,7 @@ weapon_names = {
         11: "g3Sg1", 
         13: "galilar", 
         14: "m249", 
+        16: "m4a1", 
         17: "mac10", 
         19: "p90", 
         23: "mp5sd", 
@@ -1076,10 +1542,9 @@ weapon_names = {
         47: "decoy", 
         48: "incgrenade", 
         49: "c4", 
-        16: "m4a1", 
-        61: "usp", 
+        59: "t_knife",
         60: "m4a1_silencer", 
+        61: "usp", 
         63: "cz75a", 
-        64: "revolver", 
-        59: "t_knife"
+        64: "revolver"
     }

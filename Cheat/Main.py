@@ -5,7 +5,7 @@ import psutil
 from Cheat import Cheat
 import gui
 
-# Global reference to cheat instance for GUI access
+
 cheat_instance = None
 
 def check_cs2_running():
@@ -20,15 +20,6 @@ def check_cs2_running():
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     
-    if cs2_processes:
-        print("[Main] Found CS2-related processes:")
-        for pid, name, exe in cs2_processes:
-            print(f"  - PID: {pid}, Name: {name}, Path: {exe}")
-    else:
-        print("[Main] No CS2-related processes found. Make sure Counter-Strike 2 is running.")
-        print("[Main] Common CS2 process names: cs2.exe, Counter-Strike 2.exe")
-    
-    return len(cs2_processes) > 0
 
 def get_cheat_instance():
     """Get the global cheat instance"""
@@ -39,12 +30,7 @@ def main():
     global cheat_instance
     
     print("[Main] Starting CS2 External Cheat...")
-    print("[Main] Checking for CS2 process...")
     
-    # Check if CS2 is running before attempting to initialize
-    if not check_cs2_running():
-        print("[Main] Please start Counter-Strike 2 and try again.")
-        input("[Main] Press Enter to continue anyway or Ctrl+C to exit...")
     
     try:
         cheat_instance = Cheat()
@@ -59,7 +45,6 @@ def main():
         input("[Main] Press Enter to exit...")
         return
 
-    print("[Main] Starting GUI and cheat threads...")
     gui_thread = threading.Thread(target=gui.render, daemon=True)
     cheat_thread = threading.Thread(target=cheat_instance.run, daemon=True)
 
