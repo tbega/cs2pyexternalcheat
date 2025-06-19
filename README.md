@@ -1,7 +1,6 @@
 # How to
 
-![image](https://github.com/user-attachments/assets/13ebec03-e2c3-48c6-8e67-2fafa0c996af)
-
+![image](https://github.com/user-attachments/assets/ac80fd07-0e59-4f7b-a3a7-1e073176d47e)
 
 
 >[!IMPORTANT]
