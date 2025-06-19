@@ -35,10 +35,6 @@ If the automatic installer doesn't work:
 
 2. Run the cheat by clicking on main.py.
 
-
-
-3. Type `py main.py`
-
 # Troubleshooting!
 
 >[!IMPORTANT]
