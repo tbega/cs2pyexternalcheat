@@ -17,6 +17,7 @@ This cheat only contains an esp and triggerbot.
 [Python](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
 
 # Installation.
+**Image guide is [here](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#image-guide)
 
 1. Download the release source code to your computer, then extract it.
 
@@ -32,14 +33,14 @@ If the automatic installer doesn't work:
 
 1. Launch Counter-Strike 2
 
-2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps [here](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#launcher-failed-to-run-main-module-unexpected-error-encountered-process-cs2exe-not-found-or-a-command-prompt-simply-flashes-for-a-second-not-giving-you-enough-time-to-read)
+2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps [here.](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#launcher-failed-to-run-main-module-unexpected-error-encountered-process-cs2exe-not-found-or-a-command-prompt-simply-flashes-for-a-second-not-giving-you-enough-time-to-read)
 
 # Troubleshooting!
 
 >[!IMPORTANT]
 If it says pyMeow can't be found, here's what you need to do:
 
-[Install PyMeow](https://github.com/qb-0/PyMeow)
+[PyMeow](https://github.com/qb-0/PyMeow)
 
 Download the latest release. Rename the pyMeow folder to exactly *pymeow*
 
