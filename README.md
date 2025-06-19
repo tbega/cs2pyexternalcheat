@@ -56,6 +56,7 @@ Try:
 
 This should fix the pyMeow error.
 
+If these don't work, I believe you can extract the pymeow folder, cd into it and run **`pip install .`**
 
 # Black screen OR AMD GPU?
 
