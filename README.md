@@ -74,6 +74,7 @@ For NVIDIA GPU's you should not have this black screen problem, simply uncheck A
 
 
 # "[Launcher] Failed to run Main module: Unexpected error encountered: Process 'cs2.exe' not found" or a command prompt simply flashes for a second not giving you enough time to read?
+- Make sure you ran install.bat
 - Open a command prompt as admin.
 - Navigate to the folder containing main.py.
 - Type ` py main.py `
