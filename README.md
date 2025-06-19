@@ -1,6 +1,6 @@
 # What is this?
 
-A external cheat for CS2, made using python, pymeow, and dearpygui.
+A **external cheat for CS2**, made using python, pymeow, and dearpygui.
 
 This cheat only contains an esp and triggerbot.
 
@@ -31,14 +31,14 @@ If the automatic installer doesn't work:
 
 ## How to use this?
 
-1. Launch Counter-Strike 2
+1. **Launch Counter-Strike 2**
 
 2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps [here.](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#what-if-i-have-a-nvidia-gpu)
 
 # Troubleshooting!
 
 >[!IMPORTANT]
-If it says pyMeow can't be found, here's what you need to do:
+PyMeow ModuleNotFoundError? Uh-oh! Don't worry, follow these instructions and it will be fixed in no time.
 
 [PyMeow](https://github.com/qb-0/PyMeow)
 
