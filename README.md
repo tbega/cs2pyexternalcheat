@@ -18,6 +18,9 @@ Try:
 
 This should fix the pyMeow error.
 
+
+# Black screen OR AMD GPU
+
 If you have an AMD GPU, you might encounter an issue where you can see the overlay, but everything else is black. To fix this please click on the menu, then cs2, and make sure the menu stays open, drag it to the bottom of the screen so it is out of your way. Sadly, I do not know another fix for AMD GPU's.
 
 
@@ -75,13 +78,14 @@ A external cheat for CS2, made using python, pymeow, and dearpygui.
    - This will automatically install all required dependencies
 
 If the automatic installer doesn't work:
-- In the folder containing requirments.txt, open a terminal.
+- In the folder containing requirments.txt, open a command prompt.
 
    `pip install -r requirements.txt` \ pip install psutil pywin32 requests pyMeow dearpygui keyboard pynput
 
 # How to use this?
 
 1. Launch Counter-Strike 2
+
 2. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in.
 
 If you do not know how to use command prompt to navigate go here:
@@ -91,7 +95,7 @@ If you do not know how to use command prompt to navigate go here:
 3. Type `py main.py`
 
 # Troubleshooting!
-If you encounter the error "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the folder `\cheat` is contained.
+If you encounter the error "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the sub-folder `\cheat` is contained.
 
 --- 
 # Other errors.
