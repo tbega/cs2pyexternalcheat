@@ -17,7 +17,7 @@ This cheat only contains an esp and triggerbot.
 [Python](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
 
 # Installation.
-**Image guide is [here](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#image-guide)
+**Image guide is [here.](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#image-guide)**
 
 1. Download the release source code to your computer, then extract it.
 
