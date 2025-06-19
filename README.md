@@ -9,8 +9,8 @@ If it says pyMeow can't be found, here's what you need to do:
 Go to `https://github.com/qb-0/PyMeow` 
 Download the latest release. Rename the pyMeow folder to exactly *pymeow*
 
-Right click in the folder, click **"Open In Terminal"** 
-`pip install pymeow*.zip` if that returns an error
+Right click in the folder, click **"Open In Terminal"** \ For Windows 10 - Open a powershell, and cd to the place you have the pymeow folder.
+`pip install pymeow*.zip` \ if that returns an error
 Try:
 
  `pip install pymeow.zip` 
