@@ -30,9 +30,8 @@ A external cheat for CS2, made using python, pymeow, and dearpygui.
 
 
 # Setup.
-- Python installed https://www.python.org/ftp/python/3.13.5/python-3.13.5-amd64.exe (Direct download link) \ https://www.python.org/downloads/ (Download page)
+- Python installed --- https://www.python.org/ftp/python/3.13.5/python-3.13.5-amd64.exe (Direct download link) \ https://www.python.org/downloads/ (Download page)
 - Counter-Strike 2 installed
-
 
 # Installation.
 
