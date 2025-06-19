@@ -32,7 +32,7 @@ If the automatic installer doesn't work:
 
 1. Launch Counter-Strike 2
 
-2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps [Here](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#launcher-failed-to-run-main-module-unexpected-error-encountered-process-cs2exe-not-found-or-a-command-prompt-simply-flashes-for-a-second-not-giving-you-enough-time-to-read)
+2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps [here](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#launcher-failed-to-run-main-module-unexpected-error-encountered-process-cs2exe-not-found-or-a-command-prompt-simply-flashes-for-a-second-not-giving-you-enough-time-to-read)
 
 # Troubleshooting!
 
