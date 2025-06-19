@@ -2,6 +2,9 @@
 
 A external cheat for CS2, made using python, pymeow, and dearpygui.
 
+
+# What does it have?
+
 # ESP.
 - Box ESP.
 - Skeleton ESP.
