@@ -1,32 +1,3 @@
-
-
->[!IMPORTANT]
-If it says pyMeow can't be found, here's what you need to do:
-
-Go to https://github.com/qb-0/PyMeow
-Download the latest release. Rename the pyMeow folder to exactly *pymeow*
-
-Right click in the folder, click **"Open In Terminal"** \ For Windows 10 - Open powershell, and cd to the place you have the pymeow folder.
-
-`pip install pymeow*.zip` 
-
-If you get an error
-
-Try:
-
- `pip install pymeow.zip` 
-
-This should fix the pyMeow error.
-
-
-# Black screen OR AMD GPU?
-
-From testing, AMD GPU's seem to have a black screen issue when using most overlays (pyMeow included), to fix this I have added a some what compromise. When launching the cheat, click onto the GUI menu, and then click onto CS2. You will have to configure the settings and then drag the menu to the bottom of the screen. I do not know of a way to completely hide the menu while fixing the overlay.
-
-# What if I have a NVIDIA GPU?
-
-For NVIDIA GPU's you should not have this black screen problem, simply uncheck Always On Top in the settings and click the minimize button to completely hide the menu until you need it.
-
 # What is this?
 
 A external cheat for CS2, made using python, pymeow, and dearpygui.
@@ -96,6 +67,36 @@ If you do not know how to use command prompt to navigate go here:
 3. Type `py main.py`
 
 # Troubleshooting!
+
+>[!IMPORTANT]
+If it says pyMeow can't be found, here's what you need to do:
+
+Go to https://github.com/qb-0/PyMeow
+
+Download the latest release. Rename the pyMeow folder to exactly *pymeow*
+
+Right click in the folder, click **"Open In Terminal"** \ For Windows 10 - Open powershell, and cd to the place you have the pymeow folder.
+
+`pip install pymeow*.zip` 
+
+If you get an error
+
+Try:
+
+ `pip install pymeow.zip` 
+
+This should fix the pyMeow error.
+
+
+# Black screen OR AMD GPU?
+
+From testing, AMD GPU's seem to have a black screen issue when using most overlays (pyMeow included), to fix this I have added a some what compromise. When launching the cheat, click onto the GUI menu, and then click onto CS2. You will have to configure the settings and then drag the menu to the bottom of the screen. I do not know of a way to completely hide the menu while fixing the overlay.
+
+# What if I have a NVIDIA GPU?
+
+For NVIDIA GPU's you should not have this black screen problem, simply uncheck Always On Top in the settings and click the minimize button to completely hide the menu until you need it.
+
+
 If you encounter the error "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the sub-folder `\cheat` is contained.
 
 --- 
