@@ -8,7 +8,7 @@ Right click in the folder, click **"Open In Terminal"**
 `pip install pymeow*.zip`
 This should fix the pyMeow error.
 
-
+If you have an AMD GPU, you might encounter an issue where you can see the overlay, but everything else is black. To fix this please click on the menu, then cs2, and make sure the menu stays open, drag it to the bottom of the screen so it is out of your way. Sadly, I do not know another fix for AMD GPU's.
 
 
 
@@ -27,7 +27,8 @@ This cheat only has esp.
 - Health ESP
 
 # Menu Preview
-![image](https://github.com/user-attachments/assets/5fede9c6-9872-4e4d-ad70-a8b3c0206036)
+![image](https://github.com/user-attachments/assets/62b7689c-7ba1-4335-b8e9-ae6732ccf4df)
+
 
 # Cheat Preview
 
