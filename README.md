@@ -21,18 +21,10 @@ A external cheat for CS2, made using python, pymeow, and dearpygui.
 - Overlay FPS slider.
 
 # Menu Preview.
-![image](https://github.com/user-attachments/assets/b5f2f467-4a16-45a8-ae6f-bf0339bb4aab)    ---  ![image](https://github.com/user-attachments/assets/a196bf75-56c2-4dee-a5e6-54564f80297c)
-                                                              
-                                                                          
-![image](https://github.com/user-attachments/assets/b0bb3485-2f37-41be-90a9-596c8a421bd2)
 
-
-
-
-
+![image](https://github.com/user-attachments/assets/b5f2f467-4a16-45a8-ae6f-bf0339bb4aab)   
+                                                                                                                       
 # Cheat Preview.
-
-![image](https://github.com/user-attachments/assets/c2050099-2ca5-4200-b675-abc46a5d41a6)
 
 ![image](https://github.com/user-attachments/assets/88f15664-e4c9-4adf-83e8-69b7b199229b)
 
