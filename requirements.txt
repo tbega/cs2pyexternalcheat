@@ -1,5 +1,7 @@
-pyMeow
-requests
-dearpygui
 psutil
-pygetwindow
+pywin32
+requests
+pyMeow
+dearpygui
+keyboard
+pynput
