@@ -74,9 +74,7 @@ For NVIDIA GPU's you should not have this black screen problem, simply uncheck A
 # "Cannot find Main.py module error"
 - Please make sure you're running the launcher script in the same folder where the sub-folder `\cheat` is contained.
 
-
-![image](https://github.com/user-attachments/assets/ac80fd07-0e59-4f7b-a3a7-1e073176d47e)
-
+![image](https://github.com/user-attachments/assets/ebe39249-2492-4bb5-a0ba-810fc48840cc)
 
 
 ### Legal Disclaimer.
