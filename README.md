@@ -1,11 +1,20 @@
+>[!HELPFUL]
+
+![image](https://github.com/user-attachments/assets/c6041153-3953-4201-99b3-0f331952ef1f)
+
+
 >[!IMPORTANT]
 If it says pyMeow can't be found, here's what you need to do:
 
 Go to `https://github.com/qb-0/PyMeow` 
-Download the latest release and extract it. Rename the pyMeow folder that contains the actual pymeow code to exactly *pymeow*
+Download the latest release. Rename the pyMeow folder to exactly *pymeow*
 
 Right click in the folder, click **"Open In Terminal"** 
-`pip install pymeow*.zip`
+`pip install pymeow*.zip` if that returns an error
+Try:
+
+ `pip install pymeow.zip` 
+
 This should fix the pyMeow error.
 
 If you have an AMD GPU, you might encounter an issue where you can see the overlay, but everything else is black. To fix this please click on the menu, then cs2, and make sure the menu stays open, drag it to the bottom of the screen so it is out of your way. Sadly, I do not know another fix for AMD GPU's.
@@ -63,12 +72,6 @@ A external cheat for CS2, made using python, pymeow, and dearpygui.
 
 2. Run `install.bat`
    - This will automatically install all required dependencies
-
-
-- Type 
-
-` py main.py `
-
 
 If the automatic installer doesn't work:
 - In the folder containing requirments.txt, open a terminal.
