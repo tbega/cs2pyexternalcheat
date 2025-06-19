@@ -33,11 +33,9 @@ If the automatic installer doesn't work:
 
 1. Launch Counter-Strike 2
 
-2. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in.
+2. Run the cheat by clicking on main.py.
 
-If you do not know how to use command prompt to navigate go here:
 
- **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
 
 3. Type `py main.py`
 
@@ -76,22 +74,27 @@ For NVIDIA GPU's you should not have this black screen problem, simply uncheck A
 
 
 # "[Launcher] Failed to run Main module: Unexpected error encountered: Process 'cs2.exe' not found" or a command prompt simply flashes for a second not giving you enough time to read?
+- Open a command prompt as admin.
+- Navigate to the folder containing main.py.
+- Type ` py main.py `
 
-- Run the main.py script as admin.
+Not sure how to navigate to folders using command prompt?
+
+ **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
 
 
 ---
 
 
-# "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds">
+# "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds"
 - Can be caused by a lot of reasons.
 - Make sure your game is Fullscreen Windowed \ Windowed.
 - An easy way to make sure your game stays in FS windowed and doesn't switch to windowed, is to launch the game, set it to fullscreen windowed, then close it and relaunch it and not mess with any settings.
 
 ---
 
-# "Cannot find Main.py module error"?
-Please make sure you're running the launcher script `main.py` in the same folder where the sub-folder `\cheat` is contained.
+# "Cannot find Main.py module error"
+- Please make sure you're running the launcher script `main.py` in the same folder where the sub-folder `\cheat` is contained.
 
 
 # Image Guide
