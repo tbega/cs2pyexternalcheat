@@ -14,7 +14,7 @@ This cheat only contains an esp and triggerbot.
 
 
 # Setup.
-- Python --- https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe
+- https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe
 - Counter-Strike 2 
 
 # Installation.
