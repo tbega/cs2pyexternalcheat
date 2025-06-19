@@ -3,12 +3,7 @@
 A **external cheat for CS2**, made using python, pymeow, and dearpygui.
 
 This cheat only contains an esp and triggerbot.
-                                                                                                                       
-### Cheat Preview.
-
-![image](https://github.com/user-attachments/assets/88f15664-e4c9-4adf-83e8-69b7b199229b)
-
-
+                                                                                                                      
 ## Setup.
 [Python](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
 
@@ -75,6 +70,13 @@ For NVIDIA GPU's you should not have this black screen problem, simply uncheck A
 - Please make sure you're running the launcher script in the same folder where the sub-folder `\cheat` is contained.
 
 ![image](https://github.com/user-attachments/assets/ebe39249-2492-4bb5-a0ba-810fc48840cc)
+
+
+# Previews.
+
+![image](https://github.com/user-attachments/assets/ef020369-4203-421f-84e6-532ac370d516)
+
+![image](https://github.com/user-attachments/assets/88f15664-e4c9-4adf-83e8-69b7b199229b)
 
 
 ### Legal Disclaimer.
