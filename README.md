@@ -80,7 +80,10 @@ If the automatic installer doesn't work:
 1. Launch Counter-Strike 2
 2. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in.
 
+If you do not know how to use command prompt to navigate go here:
+
  **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
+
 3. Type `py main.py`
 
 # Troubleshooting
