@@ -4,12 +4,17 @@
 
    <br/>
 
-   [![License](https://img.shields.io/badge/License-Educational-orange.svg?style=for-the-badge)](#legal-disclaimer)
-   [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg?style=for-the-badge)]()
+   [![Maintained](https://img.shields.io/badge/Maintained-brightgreen?style=for-the-badge)]()  
 
-   [![Made with](https://img.shields.io/badge/Made%20with-❤️-blue?style=for-the-badge)]()
-   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
+   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/) [![Fast](https://img.shields.io/badge/Lightweight-yellow?style=for-the-badge&logo=flash)]()
 
+   [![Risk](https://img.shields.io/badge/Use%20at-Own%20Risk-red?style=for-the-badge&logo=warning)]() 
+
+   
+
+
+
+ [![What the HELL](https://img.shields.io/badge/What%20the%20HELL-is%20YAOI%3F-purple?style=for-the-badge&logo=question)]()
    </div>
 
    <p align="center">
@@ -27,8 +32,9 @@
    </div>
 
    <div align="center">
-  <img src="https://img.shields.io/badge/🎯-External-36BCF7?style=for-the-badge&logoColor=white" />
-  <img src="https://img.shields.io/badge/🐍-Python-4ECDC4?style=for-the-badge&logoColor=white" />
+  <img src="https://img.shields.io/badge/External-12BD7?style=for-the-badge&logoColor=white" />
+
+   [![CS2](https://img.shields.io/badge/Game-CS2-orange?style=for-the-badge&logo=steam)]()
    </div>
 
    ---
@@ -141,6 +147,7 @@
 
    <div align="center">
 
+   [![Educational](https://img.shields.io/badge/Purpose-Educational-yellow?style=for-the-badge&logo=book)]()
    > **⚠️ IMPORTANT:** This software is for educational purposes only. Using cheats in online games violate the game's terms of service and could result in account bans. Use at your own risk. I take no responsibility for any consequences resulting from the use of this software.
 
    </div>
