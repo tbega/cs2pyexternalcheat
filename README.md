@@ -4,12 +4,11 @@
 
    <br/>
 
-   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
-   [![Downloads](https://img.shields.io/github/downloads/your-username/your-repo/total?style=for-the-badge&logo=download&color=brightgreen)](https://github.com/tbega/cs2pyexternalcheat/releases/tag/Cheatv2)
-  
-
    [![License](https://img.shields.io/badge/License-Educational-orange.svg?style=for-the-badge)](#legal-disclaimer)
    [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg?style=for-the-badge)]()
+
+   [![Made with](https://img.shields.io/badge/Made%20with-❤️-blue?style=for-the-badge)]()
+   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 
    </div>
 
