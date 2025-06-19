@@ -16,7 +16,7 @@ This cheat only contains an esp and triggerbot.
 
 1. Download the release, then extract it.
 
-2. Run `setup.py`
+2. Run `setup_premium.py`
    - This will automatically install all required dependencies
 
 If the automatic installer doesn't work:
@@ -27,7 +27,7 @@ If the automatic installer doesn't work:
 ## How to use this?
 
 1. **Launch Counter-Strike 2**
-2. Run `launcher.py`
+2. Run `launcher_premium.py`
 
 # Troubleshooting!
 
