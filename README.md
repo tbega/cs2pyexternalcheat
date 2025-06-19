@@ -3,10 +3,6 @@
 A **external cheat for CS2**, made using python, pymeow, and dearpygui.
 
 This cheat only contains an esp and triggerbot.
-
-### Menu Preview.
-
-![image](https://github.com/user-attachments/assets/b5f2f467-4a16-45a8-ae6f-bf0339bb4aab)   
                                                                                                                        
 ### Cheat Preview.
 
@@ -17,23 +13,21 @@ This cheat only contains an esp and triggerbot.
 [Python](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
 
 ## Installation.
-**Image guide is [here.](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#image-guide)**
 
-1. Download the release source code to your computer, then extract it.
+1. Download the release, then extract it.
 
-2. Run `install.bat`
+2. Run `setup.py`
    - This will automatically install all required dependencies
 
 If the automatic installer doesn't work:
 - In the folder containing requirments.txt, open a command prompt.
 
-   `pip install -r requirements.txt` \ pip install psutil pywin32 requests pyMeow dearpygui keyboard pynput
+   `pip install -r requirements.txt`
 
 ## How to use this?
 
 1. **Launch Counter-Strike 2**
-
-2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps [here.](https://github.com/tbega/cs2pyexternalcheat?tab=readme-ov-file#what-if-i-have-a-nvidia-gpu)
+2. Run `launcher.py`
 
 # Troubleshooting!
 
@@ -67,20 +61,6 @@ From testing, AMD GPU's seem to have a black screen issue when using most overla
 For NVIDIA GPU's you should not have this black screen problem, simply uncheck Always On Top in the settings and click the minimize button to completely hide the menu until you need it.
 
 
---- 
-
-
-# "[Launcher] Failed to run Main module: Unexpected error encountered: Process 'cs2.exe' not found" or a command prompt simply flashes for a second not giving you enough time to read?
-- Make sure you ran install.bat
-- Open a command prompt as admin.
-- Navigate to the folder containing main.py.
-- Type ` py main.py `
-
-Not sure how to navigate to folders using command prompt?
-
- **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
-
-
 ---
 
 
@@ -92,18 +72,7 @@ Not sure how to navigate to folders using command prompt?
 ---
 
 # "Cannot find Main.py module error"
-- Please make sure you're running the launcher script `main.py` in the same folder where the sub-folder `\cheat` is contained.
-
-
-## Image Guide
-
-![image](https://github.com/user-attachments/assets/9d710a1c-bd9c-4542-afb5-c58749ed6bb0)
-
-![image](https://github.com/user-attachments/assets/0473e3a0-9228-4fab-aeb9-b7d069834f49)
-
-![image](https://github.com/user-attachments/assets/02851483-89fc-4370-8890-de87f3797ca8)
-
-![image](https://github.com/user-attachments/assets/40af647f-d351-4c4f-8f83-2c87ed2d523a)
+- Please make sure you're running the launcher script in the same folder where the sub-folder `\cheat` is contained.
 
 
 ![image](https://github.com/user-attachments/assets/ac80fd07-0e59-4f7b-a3a7-1e073176d47e)
