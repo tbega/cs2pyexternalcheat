@@ -1,4 +1,4 @@
->[!IMPORTANT]
+# How to
 
 ![image](https://github.com/user-attachments/assets/c6041153-3953-4201-99b3-0f331952ef1f)
 
