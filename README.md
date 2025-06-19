@@ -4,16 +4,16 @@ A external cheat for CS2, made using python, pymeow, and dearpygui.
 
 This cheat only contains an esp and triggerbot.
 
-# Menu Preview.
+### Menu Preview.
 
 ![image](https://github.com/user-attachments/assets/b5f2f467-4a16-45a8-ae6f-bf0339bb4aab)   
                                                                                                                        
-# Cheat Preview.
+### Cheat Preview.
 
 ![image](https://github.com/user-attachments/assets/88f15664-e4c9-4adf-83e8-69b7b199229b)
 
 
-# Setup.
+## Setup.
 - https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe
 - Counter-Strike 2 
 
@@ -33,7 +33,7 @@ If the automatic installer doesn't work:
 
 1. Launch Counter-Strike 2
 
-2. Run the cheat by clicking on main.py.
+2. ~Run the cheat by clicking on main.py~ | This is highly unlikely to work. Please follow the steps in troubleshooting under "[Launcher] Failed to run Main module: Unexpected error encountered: Process 'cs2.exe' not found" or a command prompt simply flashes for a second not giving you enough time to read?
 
 # Troubleshooting!
 
@@ -61,7 +61,7 @@ This should fix the pyMeow error.
 
 From testing, AMD GPU's seem to have a black screen issue when using most overlays (pyMeow included), to fix this I have added a some what compromise. When launching the cheat, click onto the GUI menu, and then click onto CS2. You will have to configure the settings and then drag the menu to the bottom of the screen. I do not know of a way to completely hide the menu while fixing the overlay.
 
-# What if I have a NVIDIA GPU?
+### What if I have a NVIDIA GPU?
 
 For NVIDIA GPU's you should not have this black screen problem, simply uncheck Always On Top in the settings and click the minimize button to completely hide the menu until you need it.
 
@@ -83,7 +83,7 @@ Not sure how to navigate to folders using command prompt?
 ---
 
 
-# "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds"
+### "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds"
 - Can be caused by a lot of reasons.
 - Make sure your game is Fullscreen Windowed \ Windowed.
 - An easy way to make sure your game stays in FS windowed and doesn't switch to windowed, is to launch the game, set it to fullscreen windowed, then close it and relaunch it and not mess with any settings.
@@ -94,7 +94,7 @@ Not sure how to navigate to folders using command prompt?
 - Please make sure you're running the launcher script `main.py` in the same folder where the sub-folder `\cheat` is contained.
 
 
-# Image Guide
+## Image Guide
 
 ![image](https://github.com/user-attachments/assets/9d710a1c-bd9c-4542-afb5-c58749ed6bb0)
 
@@ -109,11 +109,11 @@ Not sure how to navigate to folders using command prompt?
 
 
 
-# Legal Disclaimer.
+### Legal Disclaimer.
 This software is for educational purposes only. Using cheats in online games violate the game's terms of service and could result in account bans. Use at your own risk. I take no responsiblity for any consequences resulting from the use of this software.
 
 
-# Credits.
+### Credits.
 https://github.com/qb-0/PyMeow
 https://www.python.org/downloads/
 https://github.com/hoffstadt/DearPyGui
