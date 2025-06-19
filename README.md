@@ -64,10 +64,6 @@ A external cheat for CS2, made using python, pymeow, and dearpygui.
 2. Run `install.bat`
    - This will automatically install all required dependencies
 
-3. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in.
-
- **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
-
 
 - Type 
 
@@ -82,19 +78,13 @@ If the automatic installer doesn't work:
 # How to use?
 
 1. Launch Counter-Strike 2
-2. Get into a match, do not launch the cheat in the main menu.
-3. Run `main.py.`
+2. Run the cheat by clicking on main.py, if this does not work, open a command prompt in admin, and navigate to the folder you have main.py in.
 
+ **https://www.howtogeek.com/659411/how-to-change-directories-in-command-prompt-on-windows-10/**
+3. Type `py main.py`
 
 # Troubleshooting
 If you encounter the error "Cannot find Main.py module error" make sure you're running the launcher script `main.py` in the same folder where the folder `\cheat` is contained.
-
-If you encounter warnings like
-- [Security] Warning: Could not enable debug privileges.
-- [Security] Warning: Could not hide process.
-
-These are completely normal, and are nothing to worry about.
-
 
 --- 
 # Other errors
@@ -106,14 +96,6 @@ If you encounter the error "[Launcher] Failed to run Main module: Unexpected err
 If you encounter the error "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds" 
 - Make sure your game is Fullscreen Windowed \ Windowed.
 - An easy way to make sure your game stays in FS windowed and doesn't switch to windowed, is to launch the game, set it to fullscreen windowed, then close it and relaunch it and not mess with any settings.
-
----
-
-Any errors like "nimpy.AccessViolationDefect: Unexpected error encountered: Read failed [Address: 0x0000000000001324] [Error: 299 - Only part of a ReadProcessMemory or WriteProcessMemory request was completed.]"
-Are due to:
-- You ran the cheat in the main menu and not in game.
-- The cheat isn't running as admin.
-
 
 
 # Legal Disclaimer
