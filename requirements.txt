@@ -5,3 +5,4 @@ pyMeow
 dearpygui
 keyboard
 pynput
+PyQt6
