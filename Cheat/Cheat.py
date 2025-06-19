@@ -4,6 +4,8 @@ import random
 import string
 import os
 import sys
+import time
+import psutil
 import Utils
 import Configs as cfg
 
@@ -534,36 +536,312 @@ class Render:
         except:
             pass
 
+class ProcessDetector:
+    """Utility class for detecting CS2 process with multiple fallback methods"""
+    
+    @staticmethod
+    def find_cs2_by_name():
+        """Try to find CS2 by exact process name"""
+        try:
+            pm = Utils.get_pyMeow()
+            # Try multiple possible names for CS2
+            possible_names = ["cs2.exe", "cs2", "Counter-Strike 2.exe", "CounterStrike2.exe"]
+            
+            for name in possible_names:
+                try:
+                    proc = pm.open_process(name)
+                    if proc:
+                        print(f"[ProcessDetector] Found CS2 by name: {name}")
+                        return proc
+                except Exception as e:
+                    print(f"[ProcessDetector] Failed to find CS2 by name '{name}': {e}")
+                    continue
+                    
+        except Exception as e:
+            print(f"[ProcessDetector] Failed to find CS2 by name: {e}")
+        return None
+    
+    @staticmethod
+    def find_cs2_by_pid_scan():
+        """Scan all processes to find CS2 by PID"""
+        try:
+            pm = Utils.get_pyMeow()
+            cs2_names = ["cs2.exe", "Counter-Strike 2.exe", "CounterStrike2.exe"]
+            
+            for process in psutil.process_iter(['pid', 'name', 'exe']):
+                try:
+                    proc_name = process.info['name']
+                    if proc_name and any(name.lower() in proc_name.lower() for name in cs2_names):
+                        pid = process.info['pid']
+                        print(f"[ProcessDetector] Found potential CS2 process: {proc_name} (PID: {pid})")
+                        
+                        # Try to open by PID - check if method exists
+                        if hasattr(pm, 'open_process_by_pid'):
+                            proc = pm.open_process_by_pid(pid)
+                        else:
+                            # Fallback: try to open by exact name if PID method doesn't exist
+                            proc = pm.open_process(proc_name)
+                            
+                        if proc:
+                            print(f"[ProcessDetector] Successfully opened CS2 process: {proc_name} (PID: {pid})")
+                            return proc
+                            
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    continue
+                except Exception as e:
+                    print(f"[ProcessDetector] Error checking process {process.info.get('name', 'unknown')}: {e}")
+                    continue
+                    
+        except Exception as e:
+            print(f"[ProcessDetector] Failed to scan processes by PID: {e}")
+        return None
+    
+    @staticmethod
+    def find_cs2_by_window_title():
+        """Try to find CS2 by looking for game window titles"""
+        try:
+            import win32gui
+            import win32process
+            
+            pm = Utils.get_pyMeow()
+            cs2_window_titles = [
+                "Counter-Strike 2",
+                "Counter Strike 2", 
+                "CS2",
+                "cs2"
+            ]
+            
+            def enum_windows_callback(hwnd, windows):
+                try:
+                    window_title = win32gui.GetWindowText(hwnd)
+                    if window_title and any(title.lower() in window_title.lower() for title in cs2_window_titles):
+                        _, pid = win32process.GetWindowThreadProcessId(hwnd)
+                        windows.append((window_title, pid))
+                except:
+                    pass
+                return True
+            
+            windows = []
+            win32gui.EnumWindows(enum_windows_callback, windows)
+            
+            for title, pid in windows:
+                print(f"[ProcessDetector] Found CS2 window: '{title}' (PID: {pid})")
+                try:
+                    # Try to open by PID - check if method exists
+                    if hasattr(pm, 'open_process_by_pid'):
+                        proc = pm.open_process_by_pid(pid)
+                    else:
+                        # Fallback: get process name and try to open by name
+                        try:
+                            p = psutil.Process(pid)
+                            proc_name = p.name()
+                            proc = pm.open_process(proc_name)
+                        except:
+                            continue
+                            
+                    if proc:
+                        print(f"[ProcessDetector] Successfully opened CS2 by window detection: {title} (PID: {pid})")
+                        return proc
+                except Exception as e:
+                    print(f"[ProcessDetector] Failed to open process by window PID {pid}: {e}")
+                    continue
+                    
+        except ImportError:
+            print("[ProcessDetector] win32gui not available for window title search")
+        except Exception as e:
+            print(f"[ProcessDetector] Failed to find CS2 by window title: {e}")
+        return None
+    
+    @staticmethod
+    def find_cs2_by_common_paths():
+        """Try to find CS2 by checking common installation paths"""
+        try:
+            pm = Utils.get_pyMeow()
+            common_paths = [
+                r"C:\Program Files (x86)\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe",
+                r"C:\Program Files\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe",
+                r"C:\Steam\steamapps\common\Counter-Strike Global Offensive\game\bin\win64\cs2.exe"
+            ]
+            
+            for path in common_paths:
+                if os.path.exists(path):
+                    print(f"[ProcessDetector] Found CS2 executable at: {path}")
+                    # Check if this executable is currently running
+                    for process in psutil.process_iter(['pid', 'name', 'exe']):
+                        try:
+                            if process.info['exe'] and os.path.samefile(process.info['exe'], path):
+                                pid = process.info['pid']
+                                proc_name = process.info['name']
+                                print(f"[ProcessDetector] Found running CS2 process at {path} (PID: {pid})")
+                                
+                                # Try to open by PID - check if method exists
+                                if hasattr(pm, 'open_process_by_pid'):
+                                    proc = pm.open_process_by_pid(pid)
+                                else:
+                                    # Fallback: try to open by process name
+                                    proc = pm.open_process(proc_name)
+                                    
+                                if proc:
+                                    return proc
+                        except (psutil.NoSuchProcess, psutil.AccessDenied, OSError):
+                            continue
+                            
+        except Exception as e:
+            print(f"[ProcessDetector] Failed to find CS2 by common paths: {e}")
+        return None
+    
+    @staticmethod
+    def find_cs2_via_steam():
+        """Try to find CS2 through Steam process monitoring"""
+        try:
+            pm = Utils.get_pyMeow()
+            
+            # Look for Steam processes first
+            steam_pids = []
+            for process in psutil.process_iter(['pid', 'name', 'cmdline']):
+                try:
+                    proc_name = process.info['name']
+                    if proc_name and 'steam' in proc_name.lower():
+                        steam_pids.append(process.info['pid'])
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            
+            if steam_pids:
+                print(f"[ProcessDetector] Found {len(steam_pids)} Steam processes")
+                
+                # Look for CS2 processes that might be children of Steam
+                for process in psutil.process_iter(['pid', 'name', 'ppid', 'cmdline']):
+                    try:
+                        proc_name = process.info['name']
+                        if proc_name and any(cs2_name.lower() in proc_name.lower() for cs2_name in ['cs2', 'counter-strike']):
+                            pid = process.info['pid']
+                            ppid = process.info.get('ppid', 0)
+                            
+                            print(f"[ProcessDetector] Found CS2-like process: {proc_name} (PID: {pid}, Parent: {ppid})")
+                            
+                            # Try to open this process
+                            if hasattr(pm, 'open_process_by_pid'):
+                                proc = pm.open_process_by_pid(pid)
+                            else:
+                                proc = pm.open_process(proc_name)
+                                
+                            if proc:
+                                print(f"[ProcessDetector] Successfully opened CS2 via Steam detection: {proc_name}")
+                                return proc
+                                
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        continue
+                        
+        except Exception as e:
+            print(f"[ProcessDetector] Failed to find CS2 via Steam: {e}")
+        return None
+    
+    @staticmethod
+    def find_cs2_with_retry(max_retries=5, retry_delay=2):
+        """Try multiple methods to find CS2 process with retries"""
+        print("[ProcessDetector] Starting CS2 process detection...")
+        
+        methods = [
+            ("exact name", ProcessDetector.find_cs2_by_name),
+            ("PID scan", ProcessDetector.find_cs2_by_pid_scan),
+            ("Steam detection", ProcessDetector.find_cs2_via_steam),
+            ("window title", ProcessDetector.find_cs2_by_window_title),
+            ("common paths", ProcessDetector.find_cs2_by_common_paths)
+        ]
+        
+        for attempt in range(max_retries):
+            print(f"[ProcessDetector] Attempt {attempt + 1}/{max_retries}")
+            
+            for method_name, method in methods:
+                print(f"[ProcessDetector] Trying method: {method_name}")
+                proc = method()
+                if proc:
+                    print(f"[ProcessDetector] Successfully found CS2 using {method_name}")
+                    return proc
+                    
+            if attempt < max_retries - 1:
+                print(f"[ProcessDetector] All methods failed, waiting {retry_delay}s before retry...")
+                time.sleep(retry_delay)
+        
+        print("[ProcessDetector] Failed to find CS2 process after all attempts")
+        return None
+
+
 class Cheat:
     def __init__(self):
-        self.proc = pm.open_process("cs2.exe")
-        self.mod = pm.get_module(self.proc, "client.dll")["base"]
+        # Try to find CS2 process using multiple methods
+        self.proc = ProcessDetector.find_cs2_with_retry()
+        if not self.proc:
+            raise Exception("Could not find CS2 process. Make sure Counter-Strike 2 is running.")
+            
+        print("[Cheat] CS2 process found, attempting to get client.dll module...")
+        
+        try:
+            pm = Utils.get_pyMeow()
+            self.mod = pm.get_module(self.proc, "client.dll")["base"]
+            print(f"[Cheat] client.dll module found at: 0x{self.mod:X}")
+        except Exception as e:
+            raise Exception(f"Could not find client.dll module in CS2 process: {e}")
 
-        offsets_name = ["dwViewMatrix", "dwEntityList", "dwLocalPlayerController", "dwLocalPlayerPawn"]
-        offsets = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/offsets.json").json()
-        [setattr(Offsets, k, offsets["client.dll"][k]) for k in offsets_name]
-        client_dll_name = {
-            "m_iIDEntIndex": "C_CSPlayerPawnBase",
-            "m_hPlayerPawn": "CCSPlayerController",
-            "m_fFlags": "C_BaseEntity",
-            "m_iszPlayerName": "CBasePlayerController",
-            "m_iHealth": "C_BaseEntity",
-            "m_iTeamNum": "C_BaseEntity",
-            "m_vOldOrigin": "C_BasePlayerPawn",
-            "m_pGameSceneNode": "C_BaseEntity",
-            "m_bDormant": "CGameSceneNode",
-            "m_flFlashDuration": "C_CSPlayerPawnBase",
-            "m_pClippingWeapon": "C_CSPlayerPawnBase",
-            "m_iShotsFired": "C_CSPlayerPawn",
-            "m_angEyeAngles": "C_CSPlayerPawnBase",
-            "m_aimPunchAngle": "C_CSPlayerPawn",
+        print("[Cheat] Downloading offsets...")
+        try:
+            offsets_name = ["dwViewMatrix", "dwEntityList", "dwLocalPlayerController", "dwLocalPlayerPawn"]
+            rq = Utils.get_requests()
+            offsets = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/offsets.json").json()
+            [setattr(Offsets, k, offsets["client.dll"][k]) for k in offsets_name]
+            
+            client_dll_name = {
+                "m_iIDEntIndex": "C_CSPlayerPawnBase",
+                "m_hPlayerPawn": "CCSPlayerController",
+                "m_fFlags": "C_BaseEntity",
+                "m_iszPlayerName": "CBasePlayerController",
+                "m_iHealth": "C_BaseEntity",
+                "m_iTeamNum": "C_BaseEntity",
+                "m_vOldOrigin": "C_BasePlayerPawn",
+                "m_pGameSceneNode": "C_BaseEntity",
+                "m_bDormant": "CGameSceneNode",
+                "m_flFlashDuration": "C_CSPlayerPawnBase",
+                "m_pClippingWeapon": "C_CSPlayerPawnBase",
+                "m_iShotsFired": "C_CSPlayerPawn",
+                "m_angEyeAngles": "C_CSPlayerPawnBase",
+                "m_aimPunchAngle": "C_CSPlayerPawn",
 
-            "m_AttributeManager": "C_EconEntity",
-            "m_Item": "C_AttributeContainer",
-            "m_iItemDefinitionIndex": "C_EconItemView"
-        }
-        clientDll = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/client_dll.json").json()
-        [setattr(Offsets, k, clientDll["client.dll"]["classes"][client_dll_name[k]]["fields"][k]) for k in client_dll_name]
+                "m_AttributeManager": "C_EconEntity",
+                "m_Item": "C_AttributeContainer",
+                "m_iItemDefinitionIndex": "C_EconItemView"
+            }
+            clientDll = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/client_dll.json").json()
+            [setattr(Offsets, k, clientDll["client.dll"]["classes"][client_dll_name[k]]["fields"][k]) for k in client_dll_name]
+            print("[Cheat] Offsets downloaded and applied successfully")
+            
+        except Exception as e:
+            raise Exception(f"Failed to download or apply offsets: {e}")
+        
+        # Store overlay instance for dynamic FPS updates
+        self.overlay_initialized = False
+
+    def update_overlay_fps(self, new_fps):
+        """Update overlay FPS dynamically if possible"""
+        if not self.overlay_initialized:
+            print(f"[Cheat] Overlay not initialized yet, FPS will be applied on next start")
+            return False
+            
+        try:
+            pm = Utils.get_pyMeow()
+            if hasattr(pm, 'set_overlay_fps'):
+                pm.set_overlay_fps(int(new_fps))
+                print(f"[Cheat] Overlay FPS updated to {int(new_fps)}")
+                return True
+            elif hasattr(pm, 'overlay_set_fps'):
+                pm.overlay_set_fps(int(new_fps))
+                print(f"[Cheat] Overlay FPS updated to {int(new_fps)}")
+                return True
+            else:
+                print(f"[Cheat] Dynamic FPS update not supported by pyMeow version")
+                return False
+        except Exception as e:
+            print(f"[Cheat] Failed to update overlay FPS: {e}")
+            return False
 
     def it_entities(self):
         ent_list = pm.r_int64(self.proc, self.mod + Offsets.dwEntityList)
@@ -633,8 +911,9 @@ class Cheat:
             game_window_title = "Counter-Strike 2"
             print("[Security] Warning: Could not find CS2 window, using default title")
         
-        pm.overlay_init(game_window_title, fps=144)
-        print(f"[Security] Overlay attached to: {game_window_title}")
+        pm.overlay_init(game_window_title, fps=cfg.MISC.overlay_fps)
+        print(f"[Security] Overlay attached to: {game_window_title} with {cfg.MISC.overlay_fps} FPS")
+        self.overlay_initialized = True
         
         
         random_title = SecurityUtils.generate_random_title()
