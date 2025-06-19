@@ -1,15 +1,3 @@
-# Image Guide
-
-![image](https://github.com/user-attachments/assets/a9a47de5-7496-4887-ad68-2bd16d679c32)
-
-![image](https://github.com/user-attachments/assets/b698b4eb-4da6-41d1-8843-c297169cdebf)
-
-![image](https://github.com/user-attachments/assets/02851483-89fc-4370-8890-de87f3797ca8)
-
-![image](https://github.com/user-attachments/assets/40af647f-d351-4c4f-8f83-2c87ed2d523a)
-
-
-![image](https://github.com/user-attachments/assets/ac80fd07-0e59-4f7b-a3a7-1e073176d47e)
 
 
 >[!IMPORTANT]
@@ -111,6 +99,21 @@ If you encounter the error "[Launcher] Failed to run Main module: Unexpected err
 If you encounter the error "[Skeleton ESP] Error: Unexpected error encountered: 2D Position out of bounds" 
 - Make sure your game is Fullscreen Windowed \ Windowed.
 - An easy way to make sure your game stays in FS windowed and doesn't switch to windowed, is to launch the game, set it to fullscreen windowed, then close it and relaunch it and not mess with any settings.
+
+
+# Image Guide
+
+![image](https://github.com/user-attachments/assets/a9a47de5-7496-4887-ad68-2bd16d679c32)
+
+![image](https://github.com/user-attachments/assets/b698b4eb-4da6-41d1-8843-c297169cdebf)
+
+![image](https://github.com/user-attachments/assets/02851483-89fc-4370-8890-de87f3797ca8)
+
+![image](https://github.com/user-attachments/assets/40af647f-d351-4c4f-8f83-2c87ed2d523a)
+
+
+![image](https://github.com/user-attachments/assets/ac80fd07-0e59-4f7b-a3a7-1e073176d47e)
+
 
 
 # Legal Disclaimer.
