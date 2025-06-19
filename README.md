@@ -19,7 +19,7 @@ This cheat only contains an esp and triggerbot.
 
 # Installation.
 
-1. Download the zip folder to your computer, then extract it.
+1. Download the release source code to your computer, then extract it.
 
 2. Run `install.bat`
    - This will automatically install all required dependencies
@@ -99,9 +99,9 @@ Not sure how to navigate to folders using command prompt?
 
 # Image Guide
 
-![image](https://github.com/user-attachments/assets/a9a47de5-7496-4887-ad68-2bd16d679c32)
+![image](https://github.com/user-attachments/assets/9d710a1c-bd9c-4542-afb5-c58749ed6bb0)
 
-![image](https://github.com/user-attachments/assets/b698b4eb-4da6-41d1-8843-c297169cdebf)
+![image](https://github.com/user-attachments/assets/0473e3a0-9228-4fab-aeb9-b7d069834f49)
 
 ![image](https://github.com/user-attachments/assets/02851483-89fc-4370-8890-de87f3797ca8)
 
