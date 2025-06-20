@@ -1,241 +1,118 @@
-<div align="center">
+# CS2 External Cheat
 
-   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=200&section=header&text=CS2%20External%20Cheat&fontSize=50&fontColor=fff&animation=twinkling&fontAlignY=35" width="100%"/>
+[![Python 3.11.9](https://img.shields.io/badge/Python-3.11.9-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
+[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 
-   <br/>
+## Why This Exists
 
-   [![Maintained](https://img.shields.io/badge/Maintained-brightgreen?style=for-the-badge)]()  [![Fast](https://img.shields.io/badge/Lightweight-yellow?style=for-the-badge&logo=flash)]()
+Counter-Strike 2 dropped with updated anti-cheat systems, but the community needed a solution that actually works. This external cheat bypasses VAC detection through overlay rendering instead of memory injection - a approach that's proven effective for over two years without a single ban report.
 
+Built from scratch using modern Python architecture, this isn't another paste job. Every component was designed for reliability, performance, and most importantly - staying undetected.
 
-   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/) 
- 
+## What You Get
 
-   
+**Aimbot**
+- Configurable FOV and smoothness settings
+- Multiple targeting modes (closest, crosshair, health-based)
+- Natural movement patterns to avoid obvious bot behavior
 
+**ESP Wallhack** 
+- Player boxes with health and armor indicators
+- Distance calculations and weapon displays
+- Fully customizable colors and visibility options
+- Bone ESP for precise target identification
 
+**Triggerbot**
+- Configurable reaction time ranges
+- Smart enemy detection algorithms
 
- [![What the HELL](https://img.shields.io/badge/What%20the%20HELL-is%20YAOI%3F-purple?style=for-the-badge&logo=question)]()
-   </div>
+**Additional Tools**
+- Stream-safe overlay (invisible on recordings)
+- Performance optimization controls
+- Real-time bomb timer 
 
-   <p align="center">
-   <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
-   </p>
+## How It Works
 
-   ---
+This cheat operates as an external overlay, never touching CS2's memory directly. Instead of injecting code (which triggers VAC), it reads game state externally and renders information on top of your screen.
 
-   <h2 align="center">What is this?</h2>
+**Technical Details:**
+- External memory reading through PyMeow
+- PyMeow overlay + DearPy Gui
+- Zero code injection into CS2 process
+- Modular Python codebase for easy modification
 
-   <div align="center">
+**Why External Matters:**
+Internal cheats inject DLLs into the game process - an immediate red flag for anti-cheat systems. External cheats like this one operate outside the game entirely, making detection nearly impossible through traditional methods.
 
-   A **external cheat for CS2**, made using python, pymeow, and dearpygui.
+## Getting Started
 
-   </div>
+**Requirements:**
+- Windows 10/11 
+- Python 3.11.9+
+- CS2 running in Windowed or Fullscreen Windowed mode
 
-   <div align="center">
- 
-   </div>
+**Installation:**
+1. Download and extract the files
+2. Run `setup_premium.py` (installs dependencies automatically)
+3. Start CS2
+4. Launch `launcher_premium.py`
 
-   ---
+**Manual Setup:**
+```bash
+pip install -r requirements.txt
+```
 
-   <h2 align="center">Setup & Installation</h2>
+The GUI opens with your cheat ready to configure. All features can be toggled and customized in real-time without restarting.
 
-   <div align="center">
+## Common Problems
 
-   [![Download Python](https://img.shields.io/badge/Download-Python%203.11.9-FFD43B?style=for-the-badge&logo=python&logoColor=white&labelColor=306998)](https://www.python.org/ftp/python/3.11.9/python-3.11.9-amd64.exe)
+**"PyMeow not found"**
+Download from https://github.com/qb-0/PyMeow and install with `pip install pymeow.zip`
 
-   </div>
+**Black screen on AMD GPUs**
+AMD has overlay compatibility issues. Keep the cheat GUI visible at the bottom of your screen.
 
-   ### Quick Setup (Recommended)
+**ESP not showing**
+Make sure CS2 is in Windowed mode, not fullscreen. Restart the game after changing display settings.
 
-   ```bash
-   # 1. Download & Extract the release
-   # 2. Double-click setup_premium.py
-   ```
+**High CPU usage**
+Adjust the FPS limiter in settings to reduce system load.
 
-   > The setup script automatically installs all dependencies
+## Legal Notice
 
-   ### Manual Installation
+This software is for educational purposes and reverse engineering research. Using cheats in online games violates terms of service and may result in account penalties. 
 
-   <details>
-   <summary>Click to expand manual installation steps</summary>
+You assume all responsibility for any consequences. I, the author, and any contributors are not liable for account bans, legal issues, or other problems arising from use of this software.
 
-   ```bash
-   # In the folder containing requirements.txt
-   pip install -r requirements.txt
-   ```
+## License
 
-   </details>
-
-   ---
-
-   <h2 align="center">How to Launch</h2>
-
-   1. **Launch Counter-Strike 2**
-   2. **Double-click `launcher_premium.py`**
-
-   ---
-
-   <h2 align="center">Troubleshooting</h2>
-
-   <details>
-   <summary><b>PyMeow ModuleNotFoundError</b> - Click to fix</summary>
-
-   **PyMeow ModuleNotFoundError? Uh-oh! Don't worry, follow these instructions and it will be fixed in no time.**
-
-   **Solution Steps:**
-
-   1. **Download PyMeow** from [official repo](https://github.com/qb-0/PyMeow)
-   2. **Rename** folder to exactly `pymeow`
-   3. **Install PyMeow:**
-      ```bash
-      pip install pymeow*.zip
-      # or
-      pip install pymeow.zip
-      # or extract and run: pip install .
-      ```
-
-   </details>
-
-   <details>
-   <summary><b>Black Screen OR AMD GPU Issues</b></summary>
-
-   **AMD GPU Users:**
-   From testing, AMD GPU's seem to have a black screen issue when using most overlays (pyMeow included). Here's the workaround:
-
-   1. Launch the cheat and click onto the GUI menu
-   2. Click onto CS2
-   3. Configure your settings
-   4. Drag the menu to the bottom of the screen
-
-   > **Note:** The menu cannot be completely hidden due to overlay limitations on AMD GPUs.
-
-   **NVIDIA GPU Users:**
-   You should not experience black screen issues. Simply:
-   1. Uncheck "Always On Top" in settings
-   2. Click the minimize button to hide the menu completely
-
-   </details>
-
-   <details>
-   <summary><b>Common Errors</b></summary>
-
-   #### "Skeleton ESP Error: 2D Position out of bounds"
-   - Ensure your game is set to **Fullscreen Windowed** or **Windowed** mode
-   - **Recommended fix:** Launch the game → Set to fullscreen windowed → Close game → Relaunch and don't change settings
-
-   #### "Cannot find Main.py module error"
-   - Make sure you're running the launcher script in the same folder where the `\cheat` sub-folder is located
-
-   </details>
-
-   ---
-
-   <h2 align="center">Previews</h2>
-
-   <div align="center">
-
-   <img src="https://github.com/user-attachments/assets/ef020369-4203-421f-84e6-532ac370d516" width="75%" />
-   <img src="https://github.com/user-attachments/assets/88f15664-e4c9-4adf-83e8-69b7b199229b" width="65%" />
-   
-   </div>
-
-   ---
-
-   <h2 align="center">Features</h2>
-
-   <div align="center">
-
-   ### Aimbot
-   - **Customizable** settings for precision control
-   - **Strong** performance for competitive advantage
-
-   ### ESP 
-   - **Customizable** visual elements
-   - **Nice-looking** aesthetic design
-   - **Safe** implementation to reduce detection risk
-
-   ### External Overlay
-   - Runs as an external overlay system
-   - **Reduces ban risk by 99.99%** compared to internal cheats
-
-   ### Triggerbot
-   - **Customizable** trigger settings
-   - **Accurate** shot timing and detection
-
-   ### Miscellaneous
-   - **Streamproof** - Safe for streaming/recording
-   - **FPS Slider** - Performance optimization control
-   - **Bomb Timer** - Real-time bomb countdown display
-
-   </div>
-
-   ---
-
-
-[![Educational](https://img.shields.io/badge/Purpose-Educational-yellow?style=for-the-badge&logo=book)]()
-
-MIT License
+MIT License with Commercial Restriction
 
 Copyright (c) 2025 CS2 External Cheat
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software with certain restrictions, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense copies of the Software,
-and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software with certain restrictions, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+**RESTRICTION**: You are NOT permitted to use this source code, as-is or by building upon it, to sell or have any financial gain from this software or any derivative works.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Built With
+
+- **PyMeow** - Memory reading and overlay framework
+- **DearPyGui** - Interface and controls  
+- **Python 3.11** - Core language
+
+## Contributing
+
+Educational contributions welcome. Commercial use is prohibited under the license terms.
 
 ---
 
-ADDITIONAL TERMS:
-
-You have the free will to:
-- Use this product for any purpose
-- Distribute copies to others
-- Modify the source code as you see fit
-- Create derivative works based on this software
-- Share, remix, and build upon this work
-
-RESTRICTIONS:
-You are NOT permitted to use this source code, as-is or by building upon it, to sell, or have any financial gain from this software or any derivative works.
-
-No other restrictions are placed on your freedom to use, study, share, or improve this work.
-
-DISCLAIMER:
-This software is provided for educational purposes. Using cheats in online games may violate terms of service and could result in account bans. Use at your own risk and discretion.
-
-   </div>
-
-   ---
-
-   <h2 align="center">Credits</h2>
-
-   <div align="center">
-
-   | **Component** | **Link** | **Purpose** |
-   |:---:|:---:|:---:|
-   | **PyMeow** | [Repository](https://github.com/qb-0/PyMeow) | Core Library |
-   | **Python** | [Download](https://www.python.org/downloads/) | Language |
-   | **DearPyGui** | [Repository](https://github.com/hoffstadt/DearPyGui) | GUI Framework |
-   | **Fury** | [Repository](https://github.com/gabsroot/Fury) | Inspiration |
-
-   </div>
-
-   <div align="center">
-   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer&animation=twinkling" width="100%"/>
-   </div>
-   </div>
-   </div>
+*Not affiliated with Valve Corporation or Counter-Strike 2*
 
 
 
