@@ -7,7 +7,7 @@
 
 ## Why This Exists
 
-Counter-Strike 2 dropped with updated anti-cheat systems, but the community needed a solution that actually works. This external cheat bypasses VAC detection through overlay rendering instead of memory injection - a approach that's proven effective for over two years without a single ban report.
+I wanted to make something fun, my friend was in need of a free cheat. This external cheat bypasses VAC detection through overlay rendering instead of memory injection - an approach that has proven effective for over two years without a single ban report.
 
 Built from scratch using modern Python architecture, this isn't another paste job. Every component was designed for reliability, performance, and most importantly - staying undetected.
 
