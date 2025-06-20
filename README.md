@@ -4,11 +4,11 @@
 
    <br/>
 
-   [![Maintained](https://img.shields.io/badge/Maintained-brightgreen?style=for-the-badge)]()  
+   [![Maintained](https://img.shields.io/badge/Maintained-brightgreen?style=for-the-badge)]()  [![Fast](https://img.shields.io/badge/Lightweight-yellow?style=for-the-badge&logo=flash)]()
 
-   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/) [![Fast](https://img.shields.io/badge/Lightweight-yellow?style=for-the-badge&logo=flash)]()
 
-   [![Risk](https://img.shields.io/badge/Use%20at-Own%20Risk-red?style=for-the-badge&logo=warning)]() 
+   [![Python](https://img.shields.io/badge/Python-3.11.9-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/) 
+ 
 
    
 
@@ -32,9 +32,7 @@
    </div>
 
    <div align="center">
-  <img src="https://img.shields.io/badge/External-12BD7?style=for-the-badge&logoColor=white" />
-
-   [![CS2](https://img.shields.io/badge/Game-CS2-orange?style=for-the-badge&logo=steam)]()
+ 
    </div>
 
    ---
@@ -138,6 +136,36 @@
 
    <img src="https://github.com/user-attachments/assets/ef020369-4203-421f-84e6-532ac370d516" width="75%" />
    <img src="https://github.com/user-attachments/assets/88f15664-e4c9-4adf-83e8-69b7b199229b" width="65%" />
+   
+   </div>
+
+   ---
+
+   <h2 align="center">Features</h2>
+
+   <div align="center">
+
+   ### Aimbot
+   - **Customizable** settings for precision control
+   - **Strong** performance for competitive advantage
+
+   ### ESP 
+   - **Customizable** visual elements
+   - **Nice-looking** aesthetic design
+   - **Safe** implementation to reduce detection risk
+
+   ### External Overlay
+   - Runs as an external overlay system
+   - **Reduces ban risk by 99.99%** compared to internal cheats
+
+   ### Triggerbot
+   - **Customizable** trigger settings
+   - **Accurate** shot timing and detection
+
+   ### Miscellaneous
+   - **Streamproof** - Safe for streaming/recording
+   - **FPS Slider** - Performance optimization control
+   - **Bomb Timer** - Real-time bomb countdown display
 
    </div>
 
