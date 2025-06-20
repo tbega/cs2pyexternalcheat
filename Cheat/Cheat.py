@@ -13,6 +13,13 @@ from random import uniform
 from win32gui import GetWindowText, GetForegroundWindow
 from pynput.mouse import Controller, Button
 
+# Add win32api import for mouse button detection
+try:
+    import win32api
+except ImportError:
+    print("[Aimbot] Warning: win32api not available, mouse button detection may not work")
+    win32api = None
+
 
 
 
@@ -216,7 +223,9 @@ class SecurityUtils:
             return False
 
 class Offsets:
-    m_pBoneArray = 496
+    # Dynamic offsets will be populated from online sources during initialization
+    # No static fallbacks to avoid using outdated offsets
+    pass
 
 
 class Colors:
@@ -269,7 +278,11 @@ class TriggerBot:
         self.last_check_time = current_time
         
         try:
-            if not GetWindowText(GetForegroundWindow()) == "Counter-Strike 2":
+            # Check if we're in CS2 window (using flexible matching)
+            current_window = GetWindowText(GetForegroundWindow()).lower()
+            cs2_window_keywords = ["counter-strike", "cs2", "csgo"]
+            
+            if not any(keyword in current_window for keyword in cs2_window_keywords):
                 return False
                 
             
@@ -312,10 +325,11 @@ class TriggerBot:
 
 class Entity:
 
-    def __init__(self, ptr, pawn_ptr, proc):
+    def __init__(self, ptr, pawn_ptr, proc, cheat_instance=None):
         self.ptr = ptr
         self.pawn_ptr = pawn_ptr
         self.proc = proc
+        self.cheat = cheat_instance  # Reference to cheat instance for local player info
         self._valid = ptr and pawn_ptr and ptr > 0x1000 and pawn_ptr > 0x1000
 
     @property
@@ -378,6 +392,39 @@ class Entity:
             return bool(dormant)
         except:
             return True
+
+    @property
+    def spotted(self):
+        # Fast visibility check - only check local player's bit in spotted mask
+        if not self._valid:
+            return False
+        try:
+            # Direct read of spotted mask (faster than multiple reads)
+            spotted_mask = pm.r_int(self.proc, self.pawn_ptr + Offsets.m_entitySpottedState + Offsets.m_bSpottedByMask)
+            
+            # Use cached local player index if available
+            if (self.cheat and hasattr(self.cheat, '_cached_local_index') and 
+                self.cheat._cached_local_index is not None):
+                # Fast path: use cached index
+                local_player_bit = 1 << self.cheat._cached_local_index
+                return bool(spotted_mask & local_player_bit)
+            
+            # Slower path: try to determine local player index
+            # For most servers, local player is usually in slots 0-7
+            # Check common slots first for speed
+            for slot in [0, 1, 2, 3]:  # Check first 4 slots (most common)
+                test_bit = 1 << slot
+                if spotted_mask & test_bit:
+                    # This might be the local player's spot
+                    # We'll use slot 0 as the most likely candidate
+                    if slot == 0:
+                        return True
+            
+            # Fallback: assume local player is first available bit
+            return bool(spotted_mask & 1)  # Check bit 0
+                
+        except:
+            return False
 
     @property
     def weaponIndex(self):
@@ -587,7 +634,13 @@ class Render:
             return
             
         box_x, box_y, box_width, box_height = box_coords
-        box_color = Render.get_color_from_config(cfg.ESP.box_color)
+        
+        # Choose color based on visibility if enabled
+        if cfg.ESP.visible_color_change and entity.spotted:
+            box_color = Render.get_color_from_config(cfg.ESP.visible_box_color)
+        else:
+            box_color = Render.get_color_from_config(cfg.ESP.box_color)
+        
         box_fill_color = Render.get_color_from_config(cfg.ESP.box_fill_color)
         
         
@@ -638,7 +691,11 @@ class Render:
         if not cfg.ESP.show_skeleton:
             return
 
-        color_value = cfg.ESP.skeleton_color
+        # Choose color based on visibility if enabled
+        if cfg.ESP.visible_color_change and entity.spotted:
+            color_value = cfg.ESP.visible_skeleton_color
+        else:
+            color_value = cfg.ESP.skeleton_color
         skeleton_color = Render.get_color_from_config(color_value)
         
         
@@ -692,7 +749,11 @@ class Render:
         if not cfg.ESP.show_head_circle:
             return
             
-        color_value = cfg.ESP.skeleton_color
+        # Choose color based on visibility if enabled
+        if cfg.ESP.visible_color_change and entity.spotted:
+            color_value = cfg.ESP.visible_skeleton_color
+        else:
+            color_value = cfg.ESP.skeleton_color
         head_color = Render.get_color_from_config(color_value)
         
         try:
@@ -970,14 +1031,30 @@ class Cheat:
             pm = Utils.get_pyMeow()
             self.mod = pm.get_module(self.proc, "client.dll")["base"]
         except Exception as e:
-            raise Exception(f"Could not find client.dll module in CS2 process: {e}")
-
+            raise Exception(f"Could not find client.dll module in CS2 process: {e}")        # Download fresh offsets - this is critical for the cheat to work
         try:
-            offsets_name = ["dwViewMatrix", "dwEntityList", "dwLocalPlayerController", "dwLocalPlayerPawn"]
+            print("[Cheat] Downloading latest offsets...")
+            offsets_name = ["dwViewMatrix", "dwEntityList", "dwLocalPlayerController", "dwLocalPlayerPawn", "dwPlantedC4", "dwGameRules"]
             rq = Utils.get_requests()
-            offsets = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/offsets.json").json()
-            [setattr(Offsets, k, offsets["client.dll"][k]) for k in offsets_name]
             
+            # Download main offsets
+            offsets_response = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/offsets.json")
+            if offsets_response.status_code != 200:
+                raise Exception(f"Failed to download offsets: HTTP {offsets_response.status_code}")
+            
+            offsets = offsets_response.json()
+            for offset_name in offsets_name:
+                if offset_name in offsets["client.dll"]:
+                    setattr(Offsets, offset_name, offsets["client.dll"][offset_name])
+                else:
+                    # Allow dwPlantedC4 to be optional since it may not exist in all game states
+                    if offset_name == "dwPlantedC4":
+                        print(f"[Cheat] Warning: {offset_name} not found in offsets, bomb timer may not work")
+                        setattr(Offsets, offset_name, 0)
+                    else:
+                        raise Exception(f"Missing critical offset: {offset_name}")
+            
+            # Download client.dll offsets
             client_dll_name = {
                 "m_iIDEntIndex": "C_CSPlayerPawnBase",
                 "m_hPlayerPawn": "CCSPlayerController",
@@ -993,23 +1070,145 @@ class Cheat:
                 "m_iShotsFired": "C_CSPlayerPawn",
                 "m_angEyeAngles": "C_CSPlayerPawnBase",
                 "m_aimPunchAngle": "C_CSPlayerPawn",
-
+                "m_entitySpottedState": "C_CSPlayerPawn",
+                "m_bSpottedByMask": "EntitySpottedState_t",
                 "m_AttributeManager": "C_EconEntity",
                 "m_Item": "C_AttributeContainer",
-                "m_iItemDefinitionIndex": "C_EconItemView"
+                "m_iItemDefinitionIndex": "C_EconItemView",
+                "m_pBoneArray": "CGameSceneNode",
+                # Bomb/C4 related offsets
+                "m_flC4Blow": "C_PlantedC4",
+                "m_flTimerLength": "C_PlantedC4",
+                "m_flDefuseLength": "C_PlantedC4", 
+                "m_flDefuseCountDown": "C_PlantedC4",
+                "m_bBombTicking": "C_PlantedC4",
+                "m_bBeingDefused": "C_PlantedC4",
+                "m_hBombDefuser": "C_PlantedC4",
+                "m_bBombDefused": "C_PlantedC4",
+                "m_flNextBeep": "C_PlantedC4",
+                "m_bBombPlanted": "C_CSGameRules",
+                # Observer/Spectator related offsets
+                "m_pObserverServices": "C_BasePlayerPawn",
+                "m_hObserverTarget": "CPlayerObserverServices",
+                "m_hController": "C_BasePlayerPawn"
             }
-            clientDll = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/client_dll.json").json()
-            [setattr(Offsets, k, clientDll["client.dll"]["classes"][client_dll_name[k]]["fields"][k]) for k in client_dll_name]
-            print("[Cheat] Offsets downloaded and applied successfully")
+            
+            clientDll_response = rq.get("https://raw.githubusercontent.com/a2x/cs2-dumper/main/output/client_dll.json")
+            if clientDll_response.status_code != 200:
+                raise Exception(f"Failed to download client_dll offsets: HTTP {clientDll_response.status_code}")
+                
+            clientDll = clientDll_response.json()
+            
+            missing_offsets = []
+            for offset_name, class_name in client_dll_name.items():
+                try:
+                    # Enhanced search logic for better offset detection
+                    offset_found = False
+                    
+                    # Primary search: exact class and field match
+                    if (class_name in clientDll["client.dll"]["classes"] and 
+                        "fields" in clientDll["client.dll"]["classes"][class_name] and
+                        offset_name in clientDll["client.dll"]["classes"][class_name]["fields"]):
+                        
+                        offset_value = clientDll["client.dll"]["classes"][class_name]["fields"][offset_name]
+                        setattr(Offsets, offset_name, offset_value)
+                        offset_found = True
+                    
+                    # Secondary search: check if field exists but is null (special handling for m_pBoneArray)
+                    elif (class_name in clientDll["client.dll"]["classes"] and 
+                          "fields" in clientDll["client.dll"]["classes"][class_name]):
+                        
+                        fields = clientDll["client.dll"]["classes"][class_name]["fields"]
+                        if offset_name in fields:
+                            field_value = fields[offset_name]
+                            
+                            # Check if the field is null or invalid
+                            if field_value is None or field_value == 0:
+                                print(f"[Cheat] Warning: {offset_name} found but is null/zero, using fallback")
+                                
+                                # Special handling for m_pBoneArray
+                                if offset_name == "m_pBoneArray":
+                                    Offsets.m_pBoneArray = 0x1F0  # Stable fallback
+                                    print(f"[Cheat] Applied fallback for {offset_name}: 0x{Offsets.m_pBoneArray:X}")
+                                    offset_found = True
+                            else:
+                                setattr(Offsets, offset_name, field_value)
+                                offset_found = True
+                    
+                    # Tertiary search: try to find the field in related classes
+                    if not offset_found and offset_name == "m_pBoneArray":
+                        # Search in other potential classes for bone array
+                        potential_classes = ["C_BaseEntity", "CBaseAnimating", "C_BaseAnimating", "CGameSceneNode"]
+                        for potential_class in potential_classes:
+                            if (potential_class in clientDll["client.dll"]["classes"] and 
+                                "fields" in clientDll["client.dll"]["classes"][potential_class] and
+                                offset_name in clientDll["client.dll"]["classes"][potential_class]["fields"]):
+                                
+                                offset_value = clientDll["client.dll"]["classes"][potential_class]["fields"][offset_name]
+                                if offset_value and offset_value > 0:
+                                    setattr(Offsets, offset_name, offset_value)
+                                    offset_found = True
+                                    break
+                    
+                    if not offset_found:
+                        missing_offsets.append(f"{offset_name} (from {class_name})")
+                        
+                except Exception as e:
+                    missing_offsets.append(f"{offset_name} (error: {e})")
+            
+            if missing_offsets:
+                
+                # Apply fallbacks for any remaining missing critical offsets
+                if not hasattr(Offsets, 'm_pBoneArray'):
+                    Offsets.m_pBoneArray = 0x1F0  # Stable fallback
+                    # Remove from missing list since we have a fallback
+                    missing_offsets = [offset for offset in missing_offsets if not offset.startswith('m_pBoneArray')]
+                
+                # Apply fallback for observer target (needed for spectator list)
+                if not hasattr(Offsets, 'm_hObserverTarget'):
+                    Offsets.m_hObserverTarget = 0x44  # Common stable fallback
+                    # Remove from missing list since we have a fallback
+                    missing_offsets = [offset for offset in missing_offsets if not offset.startswith('m_hObserverTarget')]
+                
+                # Apply fallback for observer services (needed for spectator detection)
+                if not hasattr(Offsets, 'm_pObserverServices'):
+                    Offsets.m_pObserverServices = 0x11C0  # Common stable fallback
+                    # Remove from missing list since we have a fallback
+                    missing_offsets = [offset for offset in missing_offsets if not offset.startswith('m_pObserverServices')]
+                
+                # Apply fallback for controller handle (needed for player resolution)
+                if not hasattr(Offsets, 'm_hController'):
+                    Offsets.m_hController = 0x133C  # Common stable fallback
+                    # Remove from missing list since we have a fallback
+                    missing_offsets = [offset for offset in missing_offsets if not offset.startswith('m_hController')]
+                
+                
+               
+                
+                # Show final missing offsets (after fallbacks)
+                if missing_offsets:
+                    print(f"[Cheat] Still missing offsets after fallbacks: {missing_offsets}")
+                else:
+                    print(f"[Cheat] All critical offsets available (with fallbacks applied)")
+                
+                
+            print("[Cheat] Offset download completed successfully")
             
         except Exception as e:
-            raise Exception(f"Failed to download or apply offsets: {e}")
+            error_msg = f"Critical error: Failed to download current offsets: {e}"
+            print(f"[Cheat] {error_msg}")
+            print("[Cheat] The cheat cannot work without current offsets.")
+            print("[Cheat] Please check your internet connection and try again.")
+            print("[Cheat] If the problem persists, the offset source may be temporarily unavailable.")
+            raise Exception(error_msg)
         
         
         self.overlay_initialized = False
         
         
         self.triggerbot = TriggerBot()
+        self.aimbot = Aimbot()
+        self.bomb_timer = BombTimer()
         
        
         self.check_gpu_acceleration()
@@ -1105,7 +1304,7 @@ class Cheat:
                 if not pawn_ptr or pawn_ptr < 0x1000:
                     continue
                         
-                yield Entity(controller_ptr, pawn_ptr, self.proc)
+                yield Entity(controller_ptr, pawn_ptr, self.proc, self)
                 
             except Exception as e:
                 # Skip problematic entities instead of stopping iteration
@@ -1145,6 +1344,36 @@ class Cheat:
             return 0
         except:
             return 0
+
+    def get_local_player_index(self):
+        """Get the local player's index/slot for bitmask operations"""
+        try:
+            local_controller = pm.r_int64(self.proc, self.mod + Offsets.dwLocalPlayerController)
+            if not local_controller or local_controller < 0x1000:
+                return None
+            
+            # Get the entity index from the controller
+            local_index = pm.r_int(self.proc, local_controller + Offsets.m_iIDEntIndex)
+            if 0 <= local_index <= 63:
+                return local_index
+            return None
+        except:
+            return None
+    
+    def update_local_player_index(self):
+        """Update the cached local player index"""
+        current_time = time.time()
+        if (not hasattr(self, '_last_index_update') or 
+            current_time - self._last_index_update > 2.0):  # Update every 2 seconds
+            
+            self._cached_local_index = self.get_local_player_index()
+            self._last_index_update = current_time
+            
+          
+    
+    # Cache the local player index to avoid reading it every frame
+    _cached_local_index = None
+    _last_index_update = 0
 
     def run(self):
         
@@ -1192,17 +1421,38 @@ class Cheat:
         consecutive_errors = 0
         max_consecutive_errors = 5
         
+        # Initialize local player index for visibility checks
+        self.update_local_player_index()
+        
+        # Cache the local player index to avoid reading it every frame
+        self._cached_local_index = None
+        self._last_index_update = 0
+        
         while pm.overlay_loop():
             current_frame_time = time.time()
             frame_start = current_frame_time
             
             try:
+                # Update local player index periodically for accurate visibility checks
+                self.update_local_player_index()
+                
                 # Run triggerbot if enabled
                 if cfg.TRIGGERBOT.enabled:
                     try:
                         self.triggerbot.check_and_shoot(self.proc, self.mod)
                     except:
                         pass  # Silently ignore triggerbot errors
+                
+                # Run aimbot if enabled
+                if cfg.AIMBOT.enabled:
+                    try:
+                        # Get local pawn for aimbot
+                        local_pawn = self.get_local_pawn()
+                        if local_pawn and view_matrix:
+                            # We'll get entities later in the loop, for now just prepare
+                            pass
+                    except:
+                        pass  # Silently ignore aimbot errors
                 
                 # Reduce title change frequency to prevent freezes
                 frame_counter += 1
@@ -1281,6 +1531,10 @@ class Cheat:
                                 
                             # Calculate fresh world-to-screen positions
                             if ent.wts(view_matrix) and ent.health > 0 and not ent.dormant:
+                                # Skip if visible-only is enabled and entity is not spotted
+                                if cfg.ESP.visible_only and not ent.spotted:
+                                    continue
+                                    
                                 # Calculate fresh distance
                                 distance = ent.get_distance(local_pos)
                                 if distance and distance <= cfg.ESP.max_distance:
@@ -1297,6 +1551,18 @@ class Cheat:
                 # Render entities with fresh data
                 try:
                     if entities_to_render:
+                        # Run aimbot with collected entities
+                        if cfg.AIMBOT.enabled:
+                            try:
+                                local_pawn = self.get_local_pawn()
+                                if local_pawn:
+                                    self.aimbot.check_and_aim(entities_to_render, local_pos, local_team, self.proc, local_pawn, view_matrix)
+                            except Exception as e:
+                                # Only print aimbot errors occasionally
+                                if not hasattr(self, '_last_aimbot_error_time') or current_frame_time - self._last_aimbot_error_time > 10:
+                                    print(f"[Aimbot] Error: {e}")
+                                    self._last_aimbot_error_time = current_frame_time
+                        
                         self.render_entities_optimized(entities_to_render, view_matrix, local_pos, local_team)
                     else:
                         # Show helpful message when no entities are found
@@ -1304,6 +1570,21 @@ class Cheat:
                         
                 except Exception as e:
                     print(f"[Cheat] Error rendering entities: {e}")
+                
+                # Draw aimbot FOV circle if enabled
+                try:
+                    if cfg.AIMBOT.enabled and cfg.AIMBOT.show_fov_circle:
+                        self.aimbot.draw_fov_circle()
+                except Exception as e:
+                    pass  # Silently ignore FOV circle errors
+                
+                # Draw bomb timer if enabled and not stream-proofing
+                if not cfg.MISC.stream_proof:
+                    try:
+                        bomb_info = self.bomb_timer.get_bomb_info(self.proc, self.mod)
+                        self.bomb_timer.draw_bomb_timer(bomb_info)
+                    except Exception as e:
+                        print(f"[BombTimer] Error: {e}")  # Show the actual error
                 
                 # End batched rendering
                 if hasattr(self, 'use_batched_rendering') and self.use_batched_rendering:
@@ -1548,3 +1829,809 @@ weapon_names = {
         63: "cz75a", 
         64: "revolver"
     }
+
+class Aimbot:
+    def __init__(self):
+        self.mouse = Controller()
+        self.last_aim_time = 0
+        self.last_target = None
+        self.aim_start_time = 0
+        self.target_locked = False
+        
+    def get_screen_center(self):
+        """Get the center of the screen for FOV calculations"""
+        import ctypes
+        user32 = ctypes.windll.user32
+        screen_width = user32.GetSystemMetrics(0)
+        screen_height = user32.GetSystemMetrics(1)
+        return {"x": screen_width / 2, "y": screen_height / 2}
+    
+    def calculate_distance_2d(self, pos1, pos2):
+        """Calculate 2D distance between two points"""
+        try:
+            dx = pos1["x"] - pos2["x"]
+            dy = pos1["y"] - pos2["y"]
+            return math.sqrt(dx * dx + dy * dy)
+        except:
+            return float('inf')
+    
+    def calculate_fov(self, target_pos, screen_center):
+        """Calculate field of view angle to target"""
+        try:
+            distance = self.calculate_distance_2d(target_pos, screen_center)
+            # Convert distance to FOV angle (simplified)
+            fov_angle = math.degrees(math.atan2(distance, 1000))  # Arbitrary distance normalization
+            return fov_angle
+        except:
+            return float('inf')
+    
+    def is_within_fov(self, target_pos, screen_center, fov_radius):
+        """Check if target is within FOV circle"""
+        try:
+            distance = self.calculate_distance_2d(target_pos, screen_center)
+            return distance <= fov_radius
+        except:
+            return False
+    
+    def get_target_bone_pos(self, entity, bone_id):
+        """Get the 2D screen position of a specific bone"""
+        try:
+            # Get bone position in 3D world coordinates
+            bone_pos_3d = entity.bone_pos(bone_id)
+            if not bone_pos_3d:
+                return None
+                
+            # Return the 3D position - screen conversion will be done later with view matrix
+            return bone_pos_3d
+        except:
+            return None
+    
+    def calculate_dynamic_fov(self, distance):
+        """Calculate dynamic FOV based on distance"""
+        if not cfg.AIMBOT.dynamic_fov:
+            return cfg.AIMBOT.aim_fov
+            
+        # Closer targets get smaller FOV, farther targets get larger FOV
+        if distance <= 10:
+            return cfg.AIMBOT.min_fov
+        elif distance >= 50:
+            return cfg.AIMBOT.max_fov
+        else:
+            # Linear interpolation between min and max FOV
+            ratio = (distance - 10) / 40  # 40 = 50 - 10
+            return cfg.AIMBOT.min_fov + (cfg.AIMBOT.max_fov - cfg.AIMBOT.min_fov) * ratio
+    
+   
+    
+    def smooth_mouse_movement(self, target_x, target_y, smoothness):
+        """Apply smooth mouse movement"""
+        try:
+            screen_center = self.get_screen_center()
+            
+            # Calculate offset from center to target
+            offset_x = target_x - screen_center["x"]
+            offset_y = target_y - screen_center["y"]
+            
+            # Apply smoothness - divide by smoothness factor
+            smooth_x = offset_x / smoothness
+            smooth_y = offset_y / smoothness
+            
+            # Apply mouse movement
+            if cfg.AIMBOT.flick_mode:
+                # Instant movement - move directly to target
+                self.move_mouse(offset_x, offset_y)
+            else:
+                # Smooth movement - move a fraction toward target
+                self.move_mouse(smooth_x, smooth_y)
+                
+            return True
+        except Exception as e:
+            return False
+    
+    def move_mouse(self, offset_x, offset_y):
+        """Move mouse by offset using Windows API"""
+        try:
+            import ctypes
+            user32 = ctypes.windll.user32
+            
+        
+            
+            # Use relative mouse movement
+            user32.mouse_event(0x0001, int(offset_x), int(offset_y), 0, 0)  # MOUSEEVENTF_MOVE
+            return True
+        except Exception as e:
+            return False
+
+    def find_best_target(self, entities, local_pos, local_team, view_matrix):
+        """Find the best target based on configuration"""
+        if not entities:
+            return None
+            
+        screen_center = self.get_screen_center()
+        best_target = None
+        best_score = float('inf')
+        
+        # Debug counters
+        total_entities = len(entities)
+        filtered_count = {
+            'teammates': 0,
+            'too_far': 0,
+            'no_health': 0,
+            'dormant': 0,
+            'not_visible': 0,
+            'no_bone_pos': 0,
+            'no_screen_pos': 0,
+            'out_of_fov': 0,
+            'valid_targets': 0
+        }
+        
+        for entity, distance in entities:
+            try:
+                # Skip if targeting teammates is disabled
+                if not cfg.AIMBOT.target_teammates and entity.team == local_team:
+                    filtered_count['teammates'] += 1
+                    continue
+                    
+                # Skip if entity is too far
+                if distance > cfg.AIMBOT.max_distance:
+                    filtered_count['too_far'] += 1
+                    continue
+                    
+                # Skip if entity has no health
+                if entity.health <= 0:
+                    filtered_count['no_health'] += 1
+                    continue
+                    
+                # Skip if entity is dormant
+                if entity.dormant:
+                    filtered_count['dormant'] += 1
+                    continue
+                
+                # Skip if not visible and visible check is enabled
+                if cfg.AIMBOT.visible_check and not entity.spotted:
+                    filtered_count['not_visible'] += 1
+                    continue
+                
+                # Get target bone position
+                target_bone_pos = entity.bone_pos(cfg.AIMBOT.target_bone)
+                if not target_bone_pos:
+                    filtered_count['no_bone_pos'] += 1
+                    continue
+                    
+                # Convert to screen coordinates
+                target_screen_pos = pm.world_to_screen(view_matrix, target_bone_pos, 1)
+                if not target_screen_pos:
+                    filtered_count['no_screen_pos'] += 1
+                    continue
+                
+                # Calculate FOV for this target
+                current_fov = self.calculate_dynamic_fov(distance)
+                fov_distance = self.calculate_distance_2d(target_screen_pos, screen_center)
+                
+                # Check if within FOV
+                if not self.is_within_fov(target_screen_pos, screen_center, current_fov):
+                    filtered_count['out_of_fov'] += 1
+                    continue
+                
+                # This is a valid target
+                filtered_count['valid_targets'] += 1
+                
+                # Calculate score based on preference
+                if cfg.AIMBOT.prefer_closest:
+                    score = distance  # Lower distance = better score
+                else:
+                    score = fov_distance  # Lower FOV distance = better score
+                
+                # Prefer head if enabled
+                if cfg.AIMBOT.prefer_head and cfg.AIMBOT.target_bone != 6:  # 6 = head bone
+                    # Check if head is visible and within FOV
+                    head_pos = entity.bone_pos(6)
+                    if head_pos:
+                        head_screen_pos = pm.world_to_screen(view_matrix, head_pos, 1)
+                        if head_screen_pos and self.is_within_fov(head_screen_pos, screen_center, current_fov):
+                            # Prioritize head target
+                            score *= 0.7  # Make head targets more attractive
+
+                if score < best_score:
+                    best_score = score
+                    best_target = {
+                        'entity': entity,
+                        'distance': distance,
+                        'screen_pos': target_screen_pos,
+                        'bone_pos': target_bone_pos,
+                        'fov_distance': fov_distance
+                    }
+                    
+            except Exception as e:
+                continue
+        
+       
+        
+        return best_target
+    
+    def aim_at_target(self, target_info, process, local_pawn):
+        """Aim at the specified target"""
+        try:
+            current_time = time.time()
+            
+            # Lock onto target immediately (no reaction delay)
+            if self.last_target != target_info['entity'] or not self.target_locked:
+                self.target_locked = True
+                self.last_target = target_info['entity']
+                
+            
+            # Get target screen position
+            target_screen_pos = target_info['screen_pos']
+            
+            
+            
+            
+            
+            # Calculate smoothness based on configuration
+            smoothness = cfg.AIMBOT.smoothness
+            if cfg.AIMBOT.flick_mode:
+                smoothness = cfg.AIMBOT.flick_smoothness
+                
+           
+            
+            
+            adjusted_x = target_screen_pos["x"] 
+            adjusted_y = target_screen_pos["y"] 
+            
+           
+            
+            # Apply smooth mouse movement
+            success = self.smooth_mouse_movement(adjusted_x, adjusted_y, smoothness)
+            
+            # Auto shoot if enabled and target is close to crosshair
+            if cfg.AIMBOT.auto_shoot and success:
+                screen_center = self.get_screen_center()
+                distance_to_center = self.calculate_distance_2d(
+                    {"x": adjusted_x, "y": adjusted_y}, 
+                    screen_center
+                )
+                
+                # Shoot if very close to center (within a small threshold)
+                if distance_to_center <= 5:  # 5 pixel threshold
+                    self.auto_shoot()
+            
+            return success
+            
+        except Exception as e:
+            return False
+    
+    def auto_shoot(self):
+        """Automatically shoot when target is acquired"""
+        try:
+            # Simple click
+            self.mouse.click(Button.left)
+            return True
+        except:
+            return False
+    
+    def check_and_aim(self, entities, local_pos, local_team, process, local_pawn, view_matrix):
+        """Main aimbot logic - check for targets and aim"""
+        current_time = time.time()
+        
+        try:
+            # Check if aimbot is enabled
+            if not cfg.AIMBOT.enabled:
+                self.target_locked = False
+                return False
+            
+            # Check if aim key is pressed
+            aim_key_pressed = False
+            try:
+                if cfg.AIMBOT.aim_key.lower() == "right_click":
+                    # Check right mouse button using win32api
+                    if win32api:
+                        aim_key_pressed = win32api.GetKeyState(0x02) < 0  # VK_RBUTTON
+                    else:
+                        # Fallback to checking with pynput (less reliable for real-time detection)
+                        aim_key_pressed = False
+                elif cfg.AIMBOT.aim_key.lower() == "left_click":
+                    # Check left mouse button
+                    if win32api:
+                        aim_key_pressed = win32api.GetKeyState(0x01) < 0  # VK_LBUTTON
+                    else:
+                        aim_key_pressed = False
+                else:
+                    # Use keyboard library for other keys
+                    aim_key_pressed = keyboard.is_pressed(cfg.AIMBOT.aim_key)
+                    
+            except Exception as e:
+                aim_key_pressed = False
+                
+           
+                
+            if not aim_key_pressed:
+                self.target_locked = False
+                self.last_target = None
+                return False
+
+            # Check if we're in CS2 window
+            from win32gui import GetWindowText, GetForegroundWindow
+            current_window = GetWindowText(GetForegroundWindow())
+            
+            # Check for various CS2 window titles (more flexible)
+            cs2_window_keywords = [
+                "counter-strike",
+                "counter strike", 
+                "cs2",
+                "cs:2",
+                "csgo"  # Sometimes shows as CSGO
+            ]
+            
+            # Check if any CS2 keyword is in the current window title (case insensitive)
+            in_cs2_window = any(keyword in current_window.lower() for keyword in cs2_window_keywords)
+            
+            if not in_cs2_window:
+                # Only show debug message occasionally
+                if not hasattr(self, '_debug_window_time') or current_time - self._debug_window_time > 5:
+                    self._debug_window_time = current_time
+                return False
+            
+            # If we reach here, we're in CS2 - show confirmation once
+            if not hasattr(self, '_cs2_window_confirmed'):
+                self._cs2_window_confirmed = True
+                
+          
+                
+            # Find best target
+            target = self.find_best_target(entities, local_pos, local_team, view_matrix)
+            if not target:
+                # Debug: Print why no target found occasionally
+                if not hasattr(self, '_debug_no_target_time') or current_time - self._debug_no_target_time > 5:
+                    
+                    self._debug_no_target_time = current_time
+                self.target_locked = False
+                self.last_target = None
+                return False
+
+           
+
+            # Aim at target
+            result = self.aim_at_target(target, process, local_pawn)
+            
+        
+                    
+            return result
+            
+        except Exception as e:
+            self.target_locked = False
+            return False
+    
+    def draw_fov_circle(self):
+        """Draw FOV circle on screen"""
+        if not cfg.AIMBOT.show_fov_circle or not cfg.AIMBOT.enabled:
+            return
+            
+        try:
+            screen_center = self.get_screen_center()
+            fov_radius = cfg.AIMBOT.aim_fov
+            
+            # Draw circle
+            circle_color = pm.get_color("#00AAFF")  # Light blue
+            circle_segments = 64
+            
+            # Calculate circle points
+            points = []
+            for i in range(circle_segments):
+                angle = (i * 2 * math.pi) / circle_segments
+                x = screen_center["x"] + fov_radius * math.cos(angle)
+                y = screen_center["y"] + fov_radius * math.sin(angle)
+                points.append((x, y))
+            
+            # Draw circle segments
+            for i in range(circle_segments):
+                x1, y1 = points[i]
+                x2, y2 = points[(i + 1) % circle_segments]
+                pm.draw_line(x1, y1, x2, y2, circle_color, 1.5)
+                
+        except Exception as e:
+            pass
+
+class BombTimer:
+    def __init__(self):
+        self.last_update = 0
+        self.bomb_planted = False
+        self.bomb_plant_time = None
+        self.bomb_timer_length = 40.0  # Default CS2 bomb timer (40 seconds)
+        self.cached_bomb_info = {
+            'is_planted': False,
+            'time_remaining': 0.0,
+            'bomb_position': {'x': 0, 'y': 0, 'z': 0},
+            'is_being_defused': False,
+            'defuse_time_remaining': 0.0,
+            'bomb_defused': False,
+            'bomb_ticking': False
+        }
+    
+    def get_bomb_info(self, process, module):
+        """Get current bomb information using GameRules with enhanced error handling"""
+        current_time = time.time()
+        
+        # Update more frequently for real-time countdown (every 50ms)
+        if current_time - self.last_update < 0.05:
+            # Still update time_remaining for countdown even when cached
+            if self.cached_bomb_info['is_planted'] and self.bomb_plant_time:
+                elapsed_time = current_time - self.bomb_plant_time
+                remaining_time = max(0.0, self.bomb_timer_length - elapsed_time)
+                self.cached_bomb_info['time_remaining'] = remaining_time
+            return self.cached_bomb_info
+        
+        self.last_update = current_time
+        bomb_info = {
+            'is_planted': False,
+            'time_remaining': 0.0,
+            'bomb_position': {'x': 0, 'y': 0, 'z': 0},
+            'is_being_defused': False,
+            'defuse_time_remaining': 0.0,
+            'bomb_defused': False,
+            'bomb_ticking': False
+        }
+        
+        try:
+            # Check if we have the required offsets
+            if not hasattr(Offsets, 'dwGameRules') or Offsets.dwGameRules == 0:
+                print("[BombTimer] Warning: dwGameRules offset not available")
+                self.cached_bomb_info = bomb_info
+                return bomb_info
+                
+            if not hasattr(Offsets, 'm_bBombPlanted') or Offsets.m_bBombPlanted == 0:
+                print("[BombTimer] Warning: m_bBombPlanted offset not available")
+                self.cached_bomb_info = bomb_info
+                return bomb_info
+            
+            # Read GameRules pointer
+            try:
+                game_rules = pm.r_int64(process, module + Offsets.dwGameRules)
+            except Exception as read_error:
+                # Silently handle read errors
+                self.cached_bomb_info = bomb_info
+                return bomb_info
+            
+            # Validate the GameRules pointer
+            if not game_rules or game_rules < 0x10000 or game_rules > 0x7FFFFFFFFFFF:
+                self.cached_bomb_info = bomb_info
+                return bomb_info
+            
+            # Read bomb planted status from GameRules
+            try:
+                current_bomb_planted = pm.r_bool(process, game_rules + Offsets.m_bBombPlanted)
+                bomb_info['is_planted'] = current_bomb_planted
+                
+                # Detect when bomb is newly planted
+                if current_bomb_planted and not self.bomb_planted:
+                    self.bomb_plant_time = current_time
+                    self.bomb_planted = True
+                    print(f"[BombTimer] Bomb planted at {current_time:.3f}! Starting countdown...")
+                elif not current_bomb_planted and self.bomb_planted:
+                    # Bomb was defused or exploded
+                    self.bomb_planted = False
+                    self.bomb_plant_time = None
+                    print("[BombTimer] Bomb is no longer active")
+                
+                self.bomb_planted = current_bomb_planted
+                    
+            except Exception as e:
+                # Failed to read bomb planted status
+                self.cached_bomb_info = bomb_info
+                return bomb_info
+            
+            # If bomb is not planted, return early
+            if not self.bomb_planted:
+                self.bomb_plant_time = None
+                self.cached_bomb_info = bomb_info
+                return bomb_info
+            
+            # Calculate time remaining based on plant time
+            if self.bomb_plant_time:
+                elapsed_time = current_time - self.bomb_plant_time
+                remaining_time = max(0.0, self.bomb_timer_length - elapsed_time)
+                bomb_info['time_remaining'] = remaining_time
+                bomb_info['bomb_ticking'] = remaining_time > 0
+            else:
+                # Fallback if we don't have plant time
+                bomb_info['time_remaining'] = 35.0
+                bomb_info['bomb_ticking'] = True
+            
+            # Try to get additional information from planted C4 entity
+            try:
+                # Try to get planted C4 entity for additional info
+                if hasattr(Offsets, 'dwPlantedC4') and Offsets.dwPlantedC4 != 0:
+                    planted_c4_address = pm.r_int64(process, module + Offsets.dwPlantedC4)
+                    
+                    if planted_c4_address and planted_c4_address > 0x10000:
+                        bomb_entity = planted_c4_address
+                        
+                        # Try to get precise timer information from game
+                        if hasattr(Offsets, 'm_flC4Blow') and hasattr(Offsets, 'm_flTimerLength'):
+                            try:
+                                # Read the actual blow time and timer length from the bomb entity
+                                blow_time = pm.r_float(process, bomb_entity + Offsets.m_flC4Blow)
+                                timer_length = pm.r_float(process, bomb_entity + Offsets.m_flTimerLength)
+                                
+                                if blow_time > 0 and timer_length > 0:
+                                    # Use the game's timer if available
+                                    game_time = current_time  # This might need adjustment for game time
+                                    remaining = blow_time - game_time
+                                    if 0 <= remaining <= 50:  # Sanity check
+                                        bomb_info['time_remaining'] = remaining
+                                        self.bomb_timer_length = timer_length
+                                        
+                            except Exception as e:
+                                # Fall back to our calculated time
+                                pass
+                        
+                        # Try to get bomb position
+                        if hasattr(Offsets, 'm_vOldOrigin'):
+                            try:
+                                bomb_pos = pm.r_vec3(process, bomb_entity + Offsets.m_vOldOrigin)
+                                if bomb_pos and all(isinstance(bomb_pos.get(k), (int, float)) for k in ['x', 'y', 'z']):
+                                    bomb_info['bomb_position'] = bomb_pos
+                            except:
+                                pass
+                        
+                        # Check if being defused
+                        if hasattr(Offsets, 'm_bBeingDefused'):
+                            try:
+                                is_defusing = pm.r_bool(process, bomb_entity + Offsets.m_bBeingDefused)
+                                bomb_info['is_being_defused'] = is_defusing
+                                
+                                if is_defusing and hasattr(Offsets, 'm_flDefuseCountDown'):
+                                    try:
+                                        defuse_time = pm.r_float(process, bomb_entity + Offsets.m_flDefuseCountDown)
+                                        if defuse_time > 0 and defuse_time <= 10:
+                                            bomb_info['defuse_time_remaining'] = defuse_time
+                                        else:
+                                            bomb_info['defuse_time_remaining'] = 5.0
+                                    except:
+                                        bomb_info['defuse_time_remaining'] = 5.0
+                            except:
+                                pass
+                        
+                        # Check bomb ticking status
+                        if hasattr(Offsets, 'm_bBombTicking'):
+                            try:
+                                bomb_info['bomb_ticking'] = pm.r_bool(process, bomb_entity + Offsets.m_bBombTicking)
+                            except:
+                                bomb_info['bomb_ticking'] = bomb_info['time_remaining'] > 0
+                        
+                        # Check if bomb is defused
+                        if hasattr(Offsets, 'm_bBombDefused'):
+                            try:
+                                bomb_defused = pm.r_bool(process, bomb_entity + Offsets.m_bBombDefused)
+                                bomb_info['bomb_defused'] = bomb_defused
+                                if bomb_defused:
+                                    bomb_info['is_planted'] = False
+                                    self.bomb_planted = False
+                                    self.bomb_plant_time = None
+                            except:
+                                pass
+                                
+            except Exception as e:
+                # Error getting additional info, but we still have basic timer
+                pass
+                
+        except Exception as e:
+            # Only log errors occasionally to avoid spam
+            if not hasattr(self, '_last_error_time') or current_time - self._last_error_time > 5.0:
+                print(f"[BombTimer] Warning: Could not read bomb info: {e}")
+                self._last_error_time = current_time
+            bomb_info['is_planted'] = False
+        
+        self.cached_bomb_info = bomb_info
+        return bomb_info
+    
+    def check_bomb_planted_loop(self, process, module, max_iterations=40):
+        """
+        Continuously check bomb planted status in a loop
+        Similar to the C# implementation you described
+        """
+        if not hasattr(Offsets, 'dwGameRules') or Offsets.dwGameRules == 0:
+            return False
+            
+        if not hasattr(Offsets, 'm_bBombPlanted') or Offsets.m_bBombPlanted == 0:
+            return False
+        
+        try:
+            # Read GameRules pointer
+            game_rules = pm.r_int64(process, module + Offsets.dwGameRules)
+            if not game_rules or game_rules < 0x10000:
+                return False
+            
+            # Initial bomb planted check
+            bomb_planted = pm.r_bool(process, game_rules + Offsets.m_bBombPlanted)
+            
+            if bomb_planted:
+                # Loop to continuously check bomb status
+                for i in range(max_iterations):
+                    try:
+                        bomb_planted = pm.r_bool(process, game_rules + Offsets.m_bBombPlanted)
+                        if not bomb_planted:
+                            # Bomb was defused or exploded
+                            print(f"[BombTimer] Bomb status changed to not planted at iteration {i}")
+                            break
+                        
+                        # Small delay to prevent excessive CPU usage
+                        time.sleep(0.1)
+                        
+                    except Exception as e:
+                        print(f"[BombTimer] Error in bomb check loop at iteration {i}: {e}")
+                        break
+                        
+                return bomb_planted
+            else:
+                return False
+                
+        except Exception as e:
+            print(f"[BombTimer] Error in bomb planted loop check: {e}")
+            return False
+
+    def _scan_for_bomb_entity(self, process, module, bomb_info):
+        """Fallback method to scan for bomb entity if dwPlantedC4 is not available"""
+        try:
+            # This is a simplified fallback - would need entity iteration to find C4
+            # For now, return empty bomb info
+            print("[BombTimer] Warning: dwPlantedC4 offset not available, bomb timer disabled")
+            return bomb_info
+        except Exception as e:
+            print(f"[BombTimer] Error in fallback bomb scan: {e}")
+            return bomb_info
+    
+    def draw_bomb_timer(self, bomb_info):
+        """Draw bomb timer on screen with enhanced status information and error handling"""
+        # Don't show anything if bomb timer is disabled
+        if not cfg.MISC.show_bomb_timer:
+            return
+            
+        # Show bomb defused message briefly
+        if bomb_info.get('bomb_defused', False):
+            try:
+                import ctypes
+                user32 = ctypes.windll.user32
+                screen_width = user32.GetSystemMetrics(0)
+                timer_x = screen_width - 270
+                timer_y = 50
+                pm.draw_text("BOMB DEFUSED", timer_x, timer_y, 24, pm.get_color("#00FF00"))
+            except:
+                pass
+            return
+            
+        # Only show timer if bomb is actually planted
+        if not bomb_info['is_planted']:
+            return
+        
+        try:
+            # Get screen dimensions for positioning
+            import ctypes
+            user32 = ctypes.windll.user32
+            screen_width = user32.GetSystemMetrics(0)
+            
+            # Timer position - right side of screen
+            timer_x = screen_width - 280  # 280 pixels from right edge
+            timer_y = 50
+            
+            time_remaining = bomb_info['time_remaining']
+            
+            # Show bomb status
+            if bomb_info.get('bomb_defused', False):
+                pm.draw_text("BOMB DEFUSED", timer_x, timer_y, 24, pm.get_color("#00FF00"))
+                return
+            elif not bomb_info.get('bomb_ticking', True):
+                pm.draw_text("BOMB NOT TICKING", timer_x, timer_y, 22, pm.get_color("#FFFF00"))
+                return
+            
+            # Show countdown even if time validation fails (for debugging)
+            if time_remaining <= 0:
+                pm.draw_text("BOMB EXPLODED", timer_x, timer_y, 24, pm.get_color("#FF0000"))
+                return
+            elif time_remaining > 50:
+                # Show generic bomb planted with the time we have
+                pm.draw_text(f"BOMB: {time_remaining:.1f}s", timer_x, timer_y, 22, pm.get_color("#FFA500"))
+                pm.draw_text("(Timer may be inaccurate)", timer_x, timer_y + 25, 14, pm.get_color("#CCCCCC"))
+            else:
+                # Choose color based on time remaining
+                if time_remaining < 10.0:
+                    # Flash red when less than 10 seconds
+                    import math
+                    import time
+                    flash_factor = abs(math.sin(time.time() * 8)) * 0.4 + 0.6  # More subtle flashing
+                    red_value = int(255 * flash_factor)
+                    timer_color = pm.get_color(f"#{red_value:02X}0000")
+                    font_size = 26  # Larger for urgency
+                elif time_remaining < 20.0:
+                    timer_color = pm.get_color("#FF8800")  # Orange
+                    font_size = 24
+                else:
+                    timer_color = pm.get_color("#00FF00")  # Green
+                    font_size = 22
+                
+                # Draw bomb timer text with larger, more visible font
+                timer_text = f"BOMB: {time_remaining:.1f}s"
+                pm.draw_text(timer_text, timer_x, timer_y, font_size, timer_color)
+                
+                # Draw progress bar
+                progress = min(time_remaining / 40.0, 1.0)  # 40 seconds default
+                bar_width = 220
+                bar_height = 20
+                bar_x = timer_x
+                bar_y = timer_y + 30
+                
+                # Background
+                pm.draw_rectangle(bar_x, bar_y, bar_width, bar_height, pm.get_color("#404040"))
+                
+                # Progress fill - color changes based on time
+                fill_width = bar_width * progress
+                if time_remaining < 10.0:
+                    fill_color = pm.get_color("#FF4444")  # Red
+                elif time_remaining < 20.0:
+                    fill_color = pm.get_color("#FF8800")  # Orange
+                else:
+                    fill_color = pm.get_color("#44FF44")  # Green
+                    
+                pm.draw_rectangle(bar_x, bar_y, fill_width, bar_height, fill_color)
+                
+                # Border
+                pm.draw_rectangle_lines(bar_x, bar_y, bar_width, bar_height, pm.get_color("#FFFFFF"), 2)
+                
+                # Time text on the bar
+                bar_text = f"{time_remaining:.1f}"
+                text_x = bar_x + bar_width // 2 - 20  # Center the text
+                pm.draw_text(bar_text, text_x, bar_y + 2, 16, pm.get_color("#FFFFFF"))
+            
+            # Defuse info
+            if bomb_info['is_being_defused']:
+                defuse_time = bomb_info.get('defuse_time_remaining', 5.0)
+                defuse_text = f"DEFUSING: {defuse_time:.1f}s"
+                pm.draw_text(defuse_text, timer_x, timer_y + 55, 18, pm.get_color("#00FFFF"))
+                
+                # Defuse progress bar
+                defuse_progress = max(0.0, min(defuse_time / 10.0, 1.0))
+                defuse_fill_width = bar_width * (1.0 - defuse_progress)
+                pm.draw_rectangle(timer_x, timer_y + 75, defuse_fill_width, 12, pm.get_color("#00FFAA"))
+                pm.draw_rectangle_lines(timer_x, timer_y + 75, bar_width, 12, pm.get_color("#FFFFFF"), 1)
+                
+        except Exception as e:
+            # Show error for debugging
+            try:
+                import ctypes
+                user32 = ctypes.windll.user32
+                screen_width = user32.GetSystemMetrics(0)
+                timer_x = screen_width - 270
+                pm.draw_text(f"Timer Error: {str(e)[:30]}", timer_x, 50, 16, pm.get_color("#FF0000"))
+            except:
+                pass
+
+    def simple_bomb_check(self, process, module):
+        """
+        Simple bomb check implementation as per user's request
+        Returns True if bomb is planted, False otherwise
+        """
+        try:
+            # Check if we have the required offsets
+            if not hasattr(Offsets, 'dwGameRules') or not hasattr(Offsets, 'm_bBombPlanted'):
+                return False
+            
+            # Read GameRules pointer
+            game_rules = pm.r_int64(process, module + Offsets.dwGameRules)
+            if not game_rules or game_rules < 0x1000:
+                return False
+            
+            # Read bomb planted status
+            bomb_planted = pm.r_bool(process, game_rules + Offsets.m_bBombPlanted)
+            
+            # If bomb is planted, you can optionally run the monitoring loop
+            if bomb_planted:
+                print("[BombTimer] Bomb is planted!")
+                # Optionally call the loop check method
+                # self.check_bomb_planted_loop(process, module)
+            
+            return bomb_planted
+            
+        except Exception as e:
+            print(f"[BombTimer] Error in simple bomb check: {e}")
+            return False
+
+# SpectatorList class removed as requested

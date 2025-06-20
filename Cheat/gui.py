@@ -445,14 +445,33 @@ def render():
                                callback=toggle_callback, user_data=("ESP", "show_health"))
                 
                 add_spacer(height=8)
-                
-                # Show Teammates Toggle
+                  # Show Teammates Toggle
                 with group(horizontal=True):
                     add_text("Show Teammates:", color=COLORS['text_primary'])
                     add_spacer(width=45)
                     initial_teammates = getattr(cfg.ESP, "show_teammates")
                     add_checkbox(label="##show_teammates_toggle", default_value=initial_teammates,
                                callback=toggle_callback, user_data=("ESP", "show_teammates"))
+                
+                add_spacer(height=8)
+                
+                # Visible Only Toggle
+                with group(horizontal=True):
+                    add_text("Visible Only:", color=COLORS['text_primary'])
+                    add_spacer(width=65)
+                    initial_visible_only = getattr(cfg.ESP, "visible_only")
+                    add_checkbox(label="##visible_only_toggle", default_value=initial_visible_only,
+                               callback=toggle_callback, user_data=("ESP", "visible_only"))
+                
+                add_spacer(height=8)
+                
+                # Visible Color Change Toggle  
+                with group(horizontal=True):
+                    add_text("Visible Color Change:", color=COLORS['text_primary'])
+                    add_spacer(width=20)
+                    initial_visible_color = getattr(cfg.ESP, "visible_color_change")
+                    add_checkbox(label="##visible_color_change_toggle", default_value=initial_visible_color,
+                               callback=toggle_callback, user_data=("ESP", "visible_color_change"))
                 
                 add_spacer(height=20)
                 
@@ -526,14 +545,33 @@ def render():
                              width=200, label="##line_color_picker", alpha_preview=True, no_inputs=True)
                 
                 add_spacer(height=10)
-                
-                # Skeleton Color with color picker and opacity
+                  # Skeleton Color with color picker and opacity
                 add_text("Skeleton Color:", color=COLORS['text_primary'])
                 add_spacer(height=5)
                 skeleton_color_val = list(cfg.ESP.skeleton_color)  # Make a copy
                 add_color_edit(default_value=skeleton_color_val, 
                              callback=debounced_color_callback, user_data=("ESP", "skeleton_color"),
                              width=200, label="##skeleton_color_picker", alpha_preview=True, no_inputs=True)
+                
+                add_spacer(height=10)
+                
+                # Visible Box Color
+                add_text("Visible Box Color:", color=COLORS['text_primary'])
+                add_spacer(height=5)
+                visible_box_color_val = list(cfg.ESP.visible_box_color)  # Make a copy
+                add_color_edit(default_value=visible_box_color_val, 
+                             callback=debounced_color_callback, user_data=("ESP", "visible_box_color"),
+                             width=200, label="##visible_box_color_picker", alpha_preview=True, no_inputs=True)
+                
+                add_spacer(height=10)
+                
+                # Visible Skeleton Color
+                add_text("Visible Skeleton Color:", color=COLORS['text_primary'])
+                add_spacer(height=5)
+                visible_skeleton_color_val = list(cfg.ESP.visible_skeleton_color)  # Make a copy
+                add_color_edit(default_value=visible_skeleton_color_val, 
+                             callback=debounced_color_callback, user_data=("ESP", "visible_skeleton_color"),
+                             width=200, label="##visible_skeleton_color_picker", alpha_preview=True, no_inputs=True)
                 
                 add_spacer(height=15)
                 # Style Settings
@@ -616,8 +654,125 @@ def render():
                                width=400, label="##delay_max", format="%.2f sec")
                 
                 add_spacer(height=10)
-               
             
+            with tab(label="Aimbot"):
+                create_section_header("Aimbot System", COLORS['accent_primary'])
+                add_spacer(height=10)
+                
+                # Main aimbot toggle
+                with group(horizontal=True):
+                    add_text("Enable Aimbot:", color=COLORS['text_primary'])
+                    add_spacer(width=60)
+                    initial_aimbot = getattr(cfg.AIMBOT, "enabled")
+                    add_checkbox(label="##aimbot_enabled", default_value=initial_aimbot,
+                               callback=toggle_callback, user_data=("AIMBOT", "enabled"))
+                
+                add_spacer(height=15)
+                
+                # Basic Settings
+                create_section_header("Basic Settings", COLORS['accent_secondary'])
+                add_spacer(height=10)
+                
+                add_text("Aim Key:", color=COLORS['text_primary'])
+                current_aim_key = getattr(cfg.AIMBOT, "aim_key")
+                add_input_text(default_value=current_aim_key, 
+                              callback=input_text_callback, user_data=("AIMBOT", "aim_key"),
+                              width=200, label="##aim_key")
+                
+                add_spacer(height=10)
+                
+                add_text("Target Bone:", color=COLORS['text_primary'])
+                add_spacer(width=20)
+                bone_options = ["Head (6)", "Neck (5)", "Chest (4)", "Body (2)"]
+                bone_values = [6, 5, 4, 2]
+                current_bone = getattr(cfg.AIMBOT, "target_bone")
+                current_bone_index = bone_values.index(current_bone) if current_bone in bone_values else 0
+                def bone_callback(sender, app_data, user_data):
+                    bone_map = {"Head (6)": 6, "Neck (5)": 5, "Chest (4)": 4, "Body (2)": 2}
+                    cfg.AIMBOT.target_bone = bone_map[app_data]
+                    cfg.ConfigManager.save_config()
+                add_combo(items=bone_options, default_value=bone_options[current_bone_index],
+                          callback=bone_callback, user_data=("AIMBOT", "target_bone"),
+                          width=150, label="##target_bone")
+                
+                add_spacer(height=15)
+                
+                # FOV and Smoothness Settings
+                create_section_header("Aim Settings", COLORS['text_accent'])
+                add_spacer(height=10)
+                
+                add_text("Aim FOV:", color=COLORS['text_primary'])
+                current_fov = getattr(cfg.AIMBOT, "aim_fov")
+                add_slider_float(min_value=10.0, max_value=180.0, default_value=current_fov,
+                               callback=slider_callback, user_data=("AIMBOT", "aim_fov"),
+                               width=300, label="##aim_fov", format="%.0f degrees")
+                
+                add_spacer(height=8)
+                
+                add_text("Smoothness:", color=COLORS['text_primary'])
+                current_smoothness = getattr(cfg.AIMBOT, "smoothness")
+                add_slider_float(min_value=1.0, max_value=10.0, default_value=current_smoothness,
+                               callback=slider_callback, user_data=("AIMBOT", "smoothness"),
+                               width=300, label="##smoothness", format="%.1f")
+                
+                add_spacer(height=8)
+                
+                add_text("Max Distance:", color=COLORS['text_primary'])
+                current_max_dist = getattr(cfg.AIMBOT, "max_distance")
+                add_slider_float(min_value=5.0, max_value=100.0, default_value=current_max_dist,
+                               callback=slider_callback, user_data=("AIMBOT", "max_distance"),
+                               width=300, label="##aimbot_max_distance", format="%.0f meters")
+                
+                add_spacer(height=15)
+                
+                # Advanced Features
+                create_section_header("Advanced Features", COLORS['accent_glow'])
+                add_spacer(height=10)
+                
+                with group(horizontal=True):
+                    # First column
+                    with group():
+                        add_checkbox(label="Auto Shoot", default_value=getattr(cfg.AIMBOT, "auto_shoot"),
+                                   callback=toggle_callback, user_data=("AIMBOT", "auto_shoot"))
+                        add_spacer(height=5)
+                        add_checkbox(label="Show FOV Circle", default_value=getattr(cfg.AIMBOT, "show_fov_circle"),
+                                   callback=toggle_callback, user_data=("AIMBOT", "show_fov_circle"))
+                        add_spacer(height=5)
+                        add_checkbox(label="Target Teammates", default_value=getattr(cfg.AIMBOT, "target_teammates"),
+                                   callback=toggle_callback, user_data=("AIMBOT", "target_teammates"))
+                    
+                    add_spacer(width=30)
+                    
+                    # Second column
+                    with group():
+                        add_checkbox(label="Dynamic FOV", default_value=getattr(cfg.AIMBOT, "dynamic_fov"),
+                                   callback=toggle_callback, user_data=("AIMBOT", "dynamic_fov"))
+                        add_spacer(height=5)
+                        add_checkbox(label="Flick Mode", default_value=getattr(cfg.AIMBOT, "flick_mode"),
+                                   callback=toggle_callback, user_data=("AIMBOT", "flick_mode"))
+                        add_spacer(height=5)
+                        add_checkbox(label="Prefer Head", default_value=getattr(cfg.AIMBOT, "prefer_head"),
+                                   callback=toggle_callback, user_data=("AIMBOT", "prefer_head"))
+                
+                add_spacer(height=15)
+                
+                # Target Priority
+                create_section_header("Target Priority", COLORS['warning'])
+                add_spacer(height=10)
+                
+                with group(horizontal=True):
+                    add_checkbox(label="Prefer Closest Enemy", default_value=getattr(cfg.AIMBOT, "prefer_closest"),
+                               callback=toggle_callback, user_data=("AIMBOT", "prefer_closest"))
+                    add_spacer(width=20)
+                    add_checkbox(label="Visible Check", default_value=getattr(cfg.AIMBOT, "visible_check"),
+                               callback=toggle_callback, user_data=("AIMBOT", "visible_check"))
+                
+                add_spacer(height=15)
+            
+        
+                
+        
+               
             with tab(label="Settings"):
                 create_section_header("Application Settings", COLORS['accent_glow'])
                 
@@ -625,6 +780,19 @@ def render():
                 initial_always_on_top = getattr(cfg.MISC, "always_on_top")
                 add_checkbox(label="  Always On Top", default_value=initial_always_on_top, 
                            callback=always_on_top_callback, user_data=("MISC", "always_on_top"))
+                
+                add_spacer(height=8)
+                
+                # Stream Proof toggle
+                initial_stream_proof = getattr(cfg.MISC, "stream_proof")
+                add_checkbox(label="  Stream Proof Mode", default_value=initial_stream_proof,
+                           callback=toggle_callback, user_data=("MISC", "stream_proof"))
+                
+                add_spacer(height=8)
+                  # Show Bomb Timer toggle
+                initial_bomb_timer = getattr(cfg.MISC, "show_bomb_timer")
+                add_checkbox(label="  Show Bomb Timer", default_value=initial_bomb_timer,
+                           callback=toggle_callback, user_data=("MISC", "show_bomb_timer"))
                 
                 add_spacer(height=15)
                 create_section_header("Performance Optimization", COLORS['success'])
