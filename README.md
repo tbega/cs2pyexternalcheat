@@ -171,12 +171,48 @@
 
    ---
 
-   <h2 align="center">Legal Disclaimer</h2>
 
-   <div align="center">
+[![Educational](https://img.shields.io/badge/Purpose-Educational-yellow?style=for-the-badge&logo=book)]()
 
-   [![Educational](https://img.shields.io/badge/Purpose-Educational-yellow?style=for-the-badge&logo=book)]()
-   > **⚠️ IMPORTANT:** This software is for educational purposes only. Using cheats in online games violate the game's terms of service and could result in account bans. Use at your own risk. I take no responsibility for any consequences resulting from the use of this software.
+MIT License
+
+Copyright (c) 2025 CS2 External Cheat
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software with certain restrictions, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+ADDITIONAL TERMS:
+
+You have the free will to:
+- Use this product for any purpose
+- Distribute copies to others
+- Modify the source code as you see fit
+- Create derivative works based on this software
+- Share, remix, and build upon this work
+
+RESTRICTIONS:
+You are NOT permitted to use this source code, as-is or by building upon it, to sell, or have any financial gain from this software or any derivative works.
+
+No other restrictions are placed on your freedom to use, study, share, or improve this work.
+
+DISCLAIMER:
+This software is provided for educational purposes. Using cheats in online games may violate terms of service and could result in account bans. Use at your own risk and discretion.
 
    </div>
 
