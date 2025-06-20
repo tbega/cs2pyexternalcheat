@@ -15,14 +15,12 @@ Built from scratch using modern Python architecture, this isn't another paste jo
 
 **Aimbot**
 - Configurable FOV and smoothness settings
-- Multiple targeting modes (closest, crosshair, health-based)
-- Natural movement patterns to avoid obvious bot behavior
+- Multiple targeting modes
 
 **ESP Wallhack** 
-- Player boxes with health and armor indicators
-- Distance calculations and weapon displays
+- Player boxes with health 
 - Fully customizable colors and visibility options
-- Bone ESP for precise target identification
+- Bone ESP 
 
 **Triggerbot**
 - Configurable reaction time ranges
