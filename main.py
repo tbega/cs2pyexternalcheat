@@ -1,14 +1,12 @@
 import sys
 import os
-cheat_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'Cheat'))
-if not os.path.isdir(cheat_dir):
-    print(f"[Launcher] Cheat directory not found: {cheat_dir}")
-    sys.exit(1)
-if cheat_dir not in sys.path:
-    sys.path.insert(0, cheat_dir)
+
+project_root = os.path.abspath(os.path.dirname(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 try:
-    import Main
+    from Cheat import Main
     if hasattr(Main, 'main'):
         Main.main()
     elif hasattr(Main, '__main__'):

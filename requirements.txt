@@ -2,8 +2,16 @@ psutil
 pywin32
 requests
 pyMeow
-dearpygui
 keyboard
 pynput
 PyQt6
 time
+dearpygui
+PySide6
+threading
+math
+os
+time
+ctypes
+random
+string
