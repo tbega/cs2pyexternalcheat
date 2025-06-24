@@ -112,7 +112,7 @@ The menu pops up and you can turn stuff on/off or change colors without restarti
 ## Legal stuff
 
 - This is for learning and messing around. If you use cheats online, you might get banned. That's on you, not me.
-- Yes, it's VAC safe, VAC can not detect externals, that doesn't mean you can't be OW banned or that VAC will update to eventually detect them.
+- Yes, it's VAC safe, VAC can not detect externals, that doesn't mean you can't be OW banned or that VAC won't update to eventually detect them.
 - 30+ matches were played in non-prime and prime, with more matches to come. I will update this REPO if I recieve a VAC or OW ban.
 
 ---
