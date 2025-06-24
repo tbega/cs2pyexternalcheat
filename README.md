@@ -1,8 +1,10 @@
+# FOR QUESTIONS OR VERY SPECIFIC BUGS CONTACT ME ON DISCORD AT *TBEGA* 
+- I BARELY CHECK GITHUB
+
+
+
 # CS2 External Cheat
 
-# For debugging / Quick launch (Not recommended)
-- Open a command prompt in admin and navigate to the root dir (the one containing the cheat folder, but not inside the cheat folder) and run py main.py.
-- This will skip the launcher and launch the cheat with a command prompt for viewing debug prints.
 
 [![Python 3.11.9](https://img.shields.io/badge/Python-3.11.9-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -91,12 +93,16 @@ The menu pops up and you can turn stuff on/off or change colors without restarti
 - **High CPU**
   - Lower the FPS in settings.
 
-- **Any other errors**
+# Not listed above?
 - Make sure you have all dependencies installed
 - If the game has updated within the past hour, wait a while for the dumps to update because the cheat uses those dumps
 - Esp laggy..? So there's a weird bug, I've noticied with certain game settings the ESP seems to run at 5ps or so, and I have genuinely no idea why. My advice is to use these settings and make sure you don't have VSync / Gysnc or any sync technology enabled ANYWHERE until I find a solution.
+
 ![image](https://github.com/user-attachments/assets/2711fce9-6d77-42e2-8347-173768c02b6a)
 
+# For debugging / Quick launch (Not recommended)
+- Open a command prompt in admin and navigate to the root dir (the one containing the cheat folder, but not inside the cheat folder) and run py main.py.
+- This will skip the launcher and launch the cheat with a command prompt for viewing debug prints.
 
 ---
 
