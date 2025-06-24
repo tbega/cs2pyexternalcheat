@@ -46,7 +46,7 @@ This is a free external cheat for CS2. It runs as a separate window (not injecte
 ### Other Stuff
 - You can change FPS and other settings
 - Bomb timer (not currently working)
-
+- Your settings will be saved in a config.json file in the cheat dir.
 
 ---
 
