@@ -5,112 +5,113 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
 [![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 
-## Why This Exists
+## Preview
 
-I wanted to make something fun, my friend was in need of a free cheat. This external cheat bypasses VAC detection through overlay rendering instead of memory injection - an approach that has proven effective for over two years without a single ban report.
+| ESP In-Game | Menu  |
+|:----------:|:-----------:|
+| ![image](https://github.com/user-attachments/assets/53121c61-97f0-4a6e-9618-f458e5d8ef09) | ![image](https://github.com/user-attachments/assets/0c70db5b-d357-49f1-83eb-fc355799fe23) |
 
-Built from scratch using modern Python architecture, this isn't another paste job. Every component was designed for reliability, performance, and most importantly - staying undetected.
 
-## What You Get
+---
 
-**Aimbot**
-- Configurable FOV and smoothness settings
-- Multiple targeting modes
+## What is this?
 
-**ESP Wallhack** 
-- Player boxes with health 
-- Fully customizable colors and visibility options
-- Bone ESP 
+This is a free external cheat for CS2. It runs as a separate window (not injected), so it's way safer than most stuff out there. I made it for fun and to help my friend, and it actually works really well.
 
-**Triggerbot**
-- Configurable reaction time ranges
-- Smart enemy detection algorithms
+---
 
-**Additional Tools**
-- Stream-safe overlay (invisible on recordings)
-- Performance optimization controls
-- Real-time bomb timer 
+## Features
 
-## How It Works
+### Aimbot
+- Change FOV and smoothness
+- Pick what bones to aim at (head, chest, etc)
 
-This cheat operates as an external overlay, never touching CS2's memory directly. Instead of injecting code (which triggers VAC), it reads game state externally and renders information on top of your screen.
+### ESP 
+- Shows boxes and health on players
+- Skeleton esp
+- You can set different colors for enemies 
+- Visble colors don't work, I will fix it soon
 
-**Technical Details:**
-- External memory reading through PyMeow
-- PyMeow overlay + DearPy Gui
-- Zero code injection into CS2 process
-- Modular Python codebase for easy modification
+### Triggerbot
+- Shoots for you when your crosshair is on someone
+- You can set how fast it reacts
 
-**Why External Matters:**
-Internal cheats inject DLLs into the game process - an immediate red flag for anti-cheat systems. External cheats like this one operate outside the game entirely, making detection nearly impossible through traditional methods.
+### Other Stuff
+- You can change FPS and other settings
+- Bomb timer (not currently working)
 
-## Getting Started
+---
 
-**Requirements:**
-- Windows 10/11 
-- Python 3.11.9+
-- CS2 running in Windowed or Fullscreen Windowed mode
+## How does it work?
 
-**Installation:**
-1. Download and extract the files
-2. Run `setup_premium.py` (installs dependencies automatically)
+It just reads memory from CS2 and draws an overlay on your screen. No DLLs or injection. You just run it, start CS2, and you're good. As long as you keep the menu open, ESP and everything works.
+Also open source and made in python so you can check the code yourself :D
+
+---
+
+## Setup
+
+### You need:
+- Windows 10 or 11
+- Python 3.11.9 or newer
+- CS2 in Windowed or Borderless mode
+
+### How to install
+1. Download and unzip everything
+2. Run `setup.py` (it installs all the stuff you need)
 3. Start CS2
-4. Launch `launcher_premium.py`
+4. Run `launcher.py`
 
-**Manual Setup:**
+Or just do:
 ```bash
 pip install -r requirements.txt
 ```
 
-The GUI opens with your cheat ready to configure. All features can be toggled and customized in real-time without restarting.
-
-## Common Problems
-
-**"PyMeow not found"**
-Download from https://github.com/qb-0/PyMeow and install with `pip install pymeow.zip`
-
-**Black screen on AMD GPUs**
-AMD has overlay compatibility issues. Keep the cheat GUI visible at the bottom of your screen.
-
-**ESP not showing**
-Make sure CS2 is in Windowed mode, not fullscreen. Restart the game after changing display settings.
-
-**High CPU usage**
-Adjust the FPS limiter in settings to reduce system load.
-
-## Legal Notice
-
-This software is for educational purposes and reverse engineering research. Using cheats in online games violates terms of service and may result in account penalties. 
-
-You assume all responsibility for any consequences. I, the author, and any contributors are not liable for account bans, legal issues, or other problems arising from use of this software.
-
-## License
-
-MIT License with Commercial Restriction
-
-Copyright (c) 2025 CS2 External Cheat
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software with certain restrictions, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-**RESTRICTION**: You are NOT permitted to use this source code, as-is or by building upon it, to sell or have any financial gain from this software or any derivative works.
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-## Built With
-
-- **PyMeow** - Memory reading and overlay framework
-- **DearPyGui** - Interface and controls  
-- **Python 3.11** - Core language
-
-## Contributing
-
-Educational contributions welcome. Commercial use is prohibited under the license terms.
+The menu pops up and you can turn stuff on/off or change colors without restarting. 
 
 ---
 
-*Not affiliated with Valve Corporation or Counter-Strike 2*
+## Problems?
+
+- **"PyMeow not found"**
+  - Download it from [here](https://github.com/qb-0/PyMeow) and do `pip install pymeow.zip`
+
+- **Black screen on AMD**
+  - AMD is weird with overlays. Try keeping the menu at the bottom of your screen.
+
+- **ESP not working**
+  - Make sure CS2 is in Windowed/Borderless. Restart the game if you change display settings. Menu has to be open and on top.
+
+- **High CPU**
+  - Lower the FPS in settings.
+
+---
+
+## Legal stuff
+
+This is for learning and messing around. If you use cheats online, you might get banned. That's on you, not me.
+
+---
+
+## License
+
+MIT License, but you can't sell this or use it to make money. That's it.
+
+---
+
+## Built With
+
+- **PyMeow** – for reading memory and overlay
+- **PySide6 (Qt)** – for the menu
+- **Python 3.11** – the language
+
+## Contributing
+
+If you want to help or add something, go for it. Just don't try to sell it.
+
+---
+
+*Not affiliated with Valve or CS2. This is just for fun.*
 
 
 
