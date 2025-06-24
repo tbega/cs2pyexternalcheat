@@ -91,6 +91,13 @@ The menu pops up and you can turn stuff on/off or change colors without restarti
 - **High CPU**
   - Lower the FPS in settings.
 
+- **Any other errors**
+- Make sure you have all dependencies installed
+- If the game has updated within the past hour, wait a while for the dumps to update because the cheat uses those dumps
+- Esp laggy..? So there's a weird bug, I've noticied with certain game settings the ESP seems to lag unbeleviably bad, and I have genuinely no idea why. My advice is to use these and make sure you don't have VSync / Gysnc or any sync technology enabled ANYWHERE.
+![image](https://github.com/user-attachments/assets/2711fce9-6d77-42e2-8347-173768c02b6a)
+
+
 ---
 
 ## Legal stuff
