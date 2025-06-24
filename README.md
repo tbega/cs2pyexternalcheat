@@ -39,6 +39,7 @@ This is a free external cheat for CS2. It runs as a separate window (not injecte
 ### Other Stuff
 - You can change FPS and other settings
 - Bomb timer (not currently working)
+- Insane performance, the esp is super smooth, and I'm able to get 300fps on the overlay while keeping 500+ fps in game. The only complaint I have myself is the triggerbot will sometimes eat your inputs and make you move more than you wanted, I'll fix it eventually.
 
 ---
 
