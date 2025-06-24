@@ -1,5 +1,9 @@
 # CS2 External Cheat
 
+# For debugging / Quick launch (Not recommended)
+- Open a command prompt in admin and navigate to the root dir (the one containing the cheat folder, but not inside the cheat folder) and run py main.py.
+- This will skip the launcher and launch the cheat with a command prompt for viewing debug prints.
+
 [![Python 3.11.9](https://img.shields.io/badge/Python-3.11.9-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
