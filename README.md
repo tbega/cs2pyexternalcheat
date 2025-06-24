@@ -21,7 +21,8 @@ This is a free external cheat for CS2. It runs as a separate window (not injecte
 ---
 
 ## Features
-
+# Insane performance
+- I can make the overlay 300+ fps, and keep 500+ fps in game. It uses 50-80mb of ram, and less than 3% cpu usage. The ESP is very smooth for being in python, with no lag. This should run well on most systems, at minimum the overlay will not hurt your performance and easily get as much or more fps than your monitor can provide.
 ### Aimbot
 - Change FOV and smoothness
 - Pick what bones to aim at (head, chest, etc)
@@ -39,7 +40,7 @@ This is a free external cheat for CS2. It runs as a separate window (not injecte
 ### Other Stuff
 - You can change FPS and other settings
 - Bomb timer (not currently working)
-- Insane performance, the esp is super smooth, and I'm able to get 300fps on the overlay while keeping 500+ fps in game. The only complaint I have myself is the triggerbot will sometimes eat your inputs and make you move more than you wanted, I'll fix it eventually.
+
 
 ---
 
