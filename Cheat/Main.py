@@ -2,8 +2,8 @@ import threading
 import time
 import psutil
 
-from Cheat import Cheat
-import gui
+from Cheat.Cheat import Cheat
+import Cheat.gui as gui
 
 
 cheat_instance = None
@@ -45,7 +45,7 @@ def main():
         input("[Main] Press Enter to exit...")
         return
 
-    gui_thread = threading.Thread(target=gui.render, daemon=True)
+    gui_thread = threading.Thread(target=gui.main, daemon=True)
     cheat_thread = threading.Thread(target=cheat_instance.run, daemon=True)
 
     gui_thread.start()
