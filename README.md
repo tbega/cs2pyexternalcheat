@@ -9,8 +9,8 @@
 [![Python 3.11.9](https://img.shields.io/badge/Python-3.11.9-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)]()
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
-
+[![Status](https://img.shields.io/badge/Status-Maintained-orange.svg)]()
+[![VAC](https://img.shields.io/badge/VAC-Safe-brightgreen.svg)]()
 ## Preview
 
 | ESP In-Game | Menu  |
@@ -27,12 +27,15 @@ This is a free external cheat for CS2. It runs as a separate window (not injecte
 ---
 
 ## Features
-# Insane performance
+
+### Insane performance
 - I can make the overlay 300+ fps, and keep 500+ fps in game. It uses 50-80mb of ram, and less than 3% cpu usage. The ESP is very smooth for being in python, with no lag. This should run well on most systems, at minimum the overlay will not hurt your performance and easily get as much or more fps than your monitor can provide.
 ### Aimbot
 - Change FOV and smoothness
 - Pick what bones to aim at (head, chest, etc)
 
+
+# SOME FEATURES ARE CURRENTLY NOT WORKING BUT THE MOST IMPORTANT ONES DO
 ### ESP 
 - Shows boxes and health on players
 - Skeleton esp
@@ -108,7 +111,9 @@ The menu pops up and you can turn stuff on/off or change colors without restarti
 
 ## Legal stuff
 
-This is for learning and messing around. If you use cheats online, you might get banned. That's on you, not me.
+- This is for learning and messing around. If you use cheats online, you might get banned. That's on you, not me.
+- Yes, it's VAC safe, VAC can not detect externals, that doesn't mean you can't be OW banned or that VAC will update to eventually detect them.
+- 30+ matches were played in non-prime and prime, with more matches to come. I will update this REPO if I recieve a VAC or OW ban.
 
 ---
 
