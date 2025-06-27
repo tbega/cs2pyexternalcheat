@@ -35,195 +35,6 @@ rq = utils.get_requests()
 
 
 
-
-
-class SecurityUtils:
-    @staticmethod
-    def generate_random_title():
-        legitimate_titles = [
-            "Microsoft Office Word",
-            "Windows Security",
-            "System Configuration",
-            "Windows Update",
-            "Task Manager",
-            "Calculator",
-            "Notepad",
-            "Windows Explorer",
-            "Control Panel",
-            "Registry Editor",
-            "System Information",
-            "Windows Defender",
-            "Network Configuration",
-            "Device Manager",
-            "Windows Settings"
-        ]
-        base_title = random.choice(legitimate_titles)
-        random_suffix = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        return f"{base_title} - {random_suffix}"
-    
-    @staticmethod
-    def hide_from_process_list():
-        try:
-            current_process = kernel32.GetCurrentProcess()
-            hwnd = user32.GetConsoleWindow()
-            if hwnd:
-                user32.ShowWindow(hwnd, 0) 
-            kernel32.SetPriorityClass(current_process, 0x40)  
-            return True
-        except:
-            return False
-    
-    @staticmethod
-    def rename_process():
-        try:
-            process_name = "winlogon.exe\x00"
-            process_name_bytes = process_name.encode('utf-16le')
-            current_process = kernel32.GetCurrentProcess()
-            return True
-        except:
-            return False
-    
-    @staticmethod
-    def enable_debug_privileges():
-        try:
-            TOKEN_ADJUST_PRIVILEGES = 0x0020
-            TOKEN_QUERY = 0x0008
-            SE_DEBUG_PRIVILEGE = 20
-            
-            token = ctypes.c_void_p()
-            luid = ctypes.c_uint64()
-
-            if not ctypes.windll.advapi32.OpenProcessToken(
-                kernel32.GetCurrentProcess(),
-                TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-                ctypes.byref(token)
-            ):
-                return False
-                
-            if not ctypes.windll.advapi32.LookupPrivilegeValueW(
-                None,
-                "SeDebugPrivilege",
-                ctypes.byref(luid)
-            ):
-                return False
-                
-            class TOKEN_PRIVILEGES(ctypes.Structure):
-                _fields_ = [
-                    ("PrivilegeCount", ctypes.c_uint32),
-                    ("Luid", ctypes.c_uint64),
-                    ("Attributes", ctypes.c_uint32)
-                ]
-            
-            tp = TOKEN_PRIVILEGES()
-            tp.PrivilegeCount = 1
-            tp.Luid = luid.value
-            tp.Attributes = 0x00000002  
-            
-            return ctypes.windll.advapi32.AdjustTokenPrivileges(
-                token,
-                False,
-                ctypes.byref(tp),
-                ctypes.sizeof(tp),
-                None,
-                None
-            )
-        except:
-            return False
-    
-    @staticmethod
-    def anti_debug_check():
-        try:
-            if kernel32.IsDebuggerPresent():
-                return False
-            
-            import psutil
-            suspicious_processes = [
-                'ollydbg.exe', 'ida.exe', 'ida64.exe', 'windbg.exe',
-                'x32dbg.exe', 'x64dbg.exe', 'cheatengine.exe',
-                'processhacker.exe', 'procmon.exe', 'procexp.exe'
-            ]
-            
-            for proc in psutil.process_iter(['name']):
-                try:
-                    if proc.info['name'].lower() in suspicious_processes:
-                        return False
-                except:
-                    continue
-            
-            return True
-        except:
-            return True  
-    
-    @staticmethod
-    def set_overlay_title(title):
-        try:
-            try:
-                import pygetwindow as gw
-                windows = gw.getAllWindows()
-                overlay_window = None
-                for window in windows:
-                    if (
-                        (window.title == "" or 
-                        "OpenGL" in window.title or 
-                        "pygame" in window.title or
-                        window.title.startswith("SDL") or
-                        "pyMeow" in window.title.lower()) and
-                        ("counter-strike" not in window.title.lower() and "cs2" not in window.title.lower())
-                    ):
-                        overlay_window = window
-                        break
-                if overlay_window:
-                    hwnd = overlay_window._hWnd
-                    user32.SetWindowTextW(hwnd, title)
-                    return True
-            except ImportError:
-                pass 
-
-            def enum_windows_callback(hwnd, lParam):
-                try:
-                    title_buffer = ctypes.create_unicode_buffer(256)
-                    user32.GetWindowTextW(hwnd, title_buffer, 256)
-                    window_title = title_buffer.value
-                    
-                    class_buffer = ctypes.create_unicode_buffer(256)
-                    user32.GetClassNameW(hwnd, class_buffer, 256)
-                    class_name = class_buffer.value
-                    
-                    
-                    if (
-                        (window_title == "" or 
-                        "OpenGL" in window_title or
-                        "SDL" in class_name or
-                        "pyMeow" in window_title.lower()) and
-                        ("counter-strike" not in window_title.lower() and 
-                         "cs2" not in window_title.lower() and
-                         "cheat menu" not in window_title.lower())
-                    ):
-                        user32.SetWindowTextW(hwnd, title)
-                        return False  
-                except:
-                    pass
-                return True  
-            EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
-            user32.EnumWindows(EnumWindowsProc(enum_windows_callback), 0)
-            return True
-        except Exception as e:
-            return False
-
-    @staticmethod
-    def obfuscate_gui_title(new_title):
-        """Separate function to obfuscate the GUI window title"""
-        try:
-            hwnd = user32.FindWindowW(None, "Cheat Menu")
-            if hwnd:
-                user32.SetWindowTextW(hwnd, new_title)
-                return True
-            else:
-                return False
-        except Exception as e:
-            print(f"[Security] Failed to obfuscate GUI title: {e}")
-            return False
-
 class Offsets:
     pass
 
@@ -556,11 +367,14 @@ class Render:
             print("[DEBUG] draw_box: Invalid box_coords, skipping.")
             return
         box_x, box_y, box_width, box_height = box_coords
-        box_color_value = getattr(entity, '_esp_box_color', None)
-        if box_color_value is not None:
-            box_color = Render.get_color_from_config(box_color_value)
+
+        # --- FIX: Use visible color if enabled and entity is spotted ---
+        if getattr(cfg.ESP, "visible_color_change", False) and getattr(entity, "spotted", False):
+            box_color = Render.get_color_from_config(cfg.ESP.visible_box_color)
         else:
             box_color = Render.get_color_from_config(cfg.ESP.box_color)
+        # -------------------------------------------------------------
+
         box_style = getattr(cfg.ESP, "box_style", "Regular")
         if box_style == "Cornered":
             l = min(box_width, box_height) // 3
@@ -581,11 +395,14 @@ class Render:
         if not cfg.ESP.show_skeleton:
             print("[DEBUG] draw_skeleton: show_skeleton is False, skipping.")
             return
-        skeleton_color_value = getattr(entity, '_esp_skeleton_color', None)
-        if skeleton_color_value is not None:
-            skeleton_color = Render.get_color_from_config(skeleton_color_value)
+
+        # --- FIX: Use visible color if enabled and entity is spotted ---
+        if getattr(cfg.ESP, "visible_color_change", False) and getattr(entity, "spotted", False):
+            skeleton_color = Render.get_color_from_config(cfg.ESP.visible_skeleton_color)
         else:
             skeleton_color = Render.get_color_from_config(cfg.ESP.skeleton_color)
+        # -------------------------------------------------------------
+
         base_thickness = 2.0
         thickness = base_thickness if distance <= 20 else min(base_thickness * 1.1, 2.5)
         if distance > 25:
@@ -1229,15 +1046,6 @@ class Cheat:
     _last_index_update = 0
 
     def run(self):
-        
-        if SecurityUtils.enable_debug_privileges():
-            print("[Security] Debug privileges enabled")
-        
-        if SecurityUtils.hide_from_process_list():
-            print("[Security] Process hidden from basic enumeration")
-        else:
-            print("")
-        
         possible_titles = ["Counter-Strike 2", "cs2", "CS2", "Counter-Strike: Global Offensive"]
         game_window_title = None
         
@@ -1261,11 +1069,7 @@ class Cheat:
         
         self.optimize_overlay_rendering()
         
-        random_title = SecurityUtils.generate_random_title()
-        try:
-            SecurityUtils.set_overlay_title(random_title)
-        except Exception as e:
-            print(f"[Security] Warning: Could not set overlay title: {e}")
+    
         
         frame_counter = 0
         title_change_interval = 5000
@@ -1300,12 +1104,7 @@ class Cheat:
                         pass
                 
                 frame_counter += 1
-                if frame_counter % title_change_interval == 0:
-                    try:
-                        new_title = SecurityUtils.generate_random_title()
-                        SecurityUtils.set_overlay_title(new_title)
-                    except:
-                        pass
+               
                 
                 try:
                     view_matrix = pm.r_floats(self.proc, self.mod + Offsets.dwViewMatrix, 16)

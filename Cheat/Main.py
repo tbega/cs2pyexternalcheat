@@ -8,30 +8,14 @@ import Cheat.gui as gui
 
 cheat_instance = None
 
-def check_cs2_running():
-    """Check if CS2 is running and provide helpful information"""
-    cs2_processes = []
-    
-    for process in psutil.process_iter(['pid', 'name', 'exe']):
-        try:
-            proc_name = process.info['name']
-            if proc_name and 'cs2' in proc_name.lower():
-                cs2_processes.append((process.info['pid'], proc_name, process.info.get('exe', 'N/A')))
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            continue
-    
-
 def get_cheat_instance():
-    """Get the global cheat instance"""
     return cheat_instance
 
 def main():
-    """Main entry point for the cheat"""
     global cheat_instance
-    
+
     print("[Main] Starting CS2 External Cheat...")
-    
-    
+
     try:
         cheat_instance = Cheat()
         print("[Main] Cheat initialized successfully")
@@ -52,8 +36,8 @@ def main():
     cheat_thread.start()
 
     try:
-        gui_thread.join()
-        cheat_thread.join()
+        while gui_thread.is_alive() and cheat_thread.is_alive():
+            time.sleep(0.1)
     except KeyboardInterrupt:
         print("[Main] Shutting down...")
 
